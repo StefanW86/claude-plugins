@@ -19,7 +19,7 @@ Reihenfolge: Plan (`grill-with-docs`) → **Design** → Spec (`plan-to-spec`). 
    - Pro Plan eine eigene Seite „NNNN <Titel>“. Neue Ansichten als neue Artboards; geänderte bestehende Ansichten direkt in ihrem Artboard anpassen statt kopieren.
    - Je Zielplattform aus dem Plan eigene Artboards in deren Auflösung (z. B. Desktop 1440, iPad 1024×1366, iPhone 390×844); mobil die Bedienung anpassen (Touch-Ziele, Navigation), nicht nur verkleinern.
    - Ein Artboard pro Ansicht, wichtige Zustände (leer, viele Daten, Fehler, Dialoge, geöffnete Auswahl wie Datum oder Menü) als eigene Artboards, realistische Beispieldaten. Hat die App Hell/Dunkel: Dialoge und geöffnete Auswahlen auch dunkel.
-   - Interaktiv nur so weit, dass die Bedienung erkennbar ist. Gestaltung mit den Mitteln des Ziel-Stacks (z. B. Tailwind-Werte, shadcn-Optik).
+   - Interaktiv nur so weit, dass die Bedienung erkennbar ist. Gestaltung mit den Mitteln des Ziel-Stacks (seine UI-Bibliothek bzw. die Steuerelemente der Plattform).
    - Bei Widersprüchen zwischen `frontend-design` und dem Design-Typ (z. B. Screenshots zur Prüfung) gilt der Design-Typ.
 6. **Abstimmen.** Link zur Seite nennen, Feedback und Kommentare einarbeiten, bis der Nutzer freigibt.
 7. **Festhalten.** Im Plan-Kopf ergänzen: `- **Design:** <Canvas-URL>#page-<id> (freigegeben YYYY-MM-DD)`. Ohne Plan: Link dem Nutzer nennen, `plan-to-spec` übernimmt ihn. Nächster Schritt: `plan-to-spec`.

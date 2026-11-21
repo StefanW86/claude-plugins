@@ -19,7 +19,7 @@
 
 ## 2. Stack, Plattformen, Struktur
 - <Framework + Versionen, DB/ORM, Test-Tools, UI-Lib>
-- **Plattformen:** <z. B. Desktop-Web, PWA iPad/iPhone, Android/iOS nativ> · **Test-Geräte:** <ein Playwright-Projekt je Plattform, mobil als Geräteprofil mit Touch und Engine, z. B. Desktop Chrome 1440×900, `devices['iPad Pro 11']`, `devices['iPhone 15']` (WebKit); hat die App Hell/Dunkel, beide Themes>
+- **Plattformen:** <z. B. Desktop-Web, PWA iPad/iPhone, Android/iOS nativ> · **Test-Geräte:** <je Plattform ein Gerät bzw. Profil im E2E-Werkzeug, mobil mit Touch und passender Engine, z. B. Desktop 1440×900, iPhone-Profil mit WebKit, Windows 1920×1080; hat die App Hell/Dunkel, beide Themes>
 - **Projektstruktur** (legt T01 an): <Ordnerbaum mit Zweck je Ordner, Ort der Tests, Namenskonventionen>
 
 | Zweck | Befehl |
@@ -43,7 +43,7 @@
 ## 6. UI
 - **Design:** <Canvas-URL#page-<id> | keins>
 - **Stil:** <Farben, Schriften, Abstände/Radius, hell/dunkel>
-- **Komponenten:** <jedes Bedienelement → Komponente der UI-Bibliothek, z. B. Datum → shadcn Date Picker (Popover + Calendar), Auswahl → Select; native Browser-Steuerelemente nur, wenn bewusst entschieden>
+- **Komponenten:** <legt der Stack eine UI-Bibliothek fest: jedes Bedienelement → ihre Komponente (Datum, Auswahl, Dialog …); sonst die gewählten Bausteine>
 - **Ansichten:** <je Ansicht: Artboard `project/<name>.dc.html`, Aufbau, Interaktionen (welche Fläche auf Klick/Tap/Ziehen reagiert), Zustände leer/laden/Fehler/geöffnet>
 
 ## 7. Builder-Entscheidungen

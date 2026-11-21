@@ -26,7 +26,7 @@ Die Spec sagt *wie, in welcher Reihenfolge und woran „fertig“ erkennbar ist*
    - Sprache des Plans bzw. Interviews. **Knapp halten**, weil jede Umsetzungs-Session sie liest: keine Begründungen aus dem Plan kopieren, keine Allgemeinplätze. Nur Projektspezifisches; den allgemeinen Ablauf (TDD, Subagenten, Reviews, Abschluss) regelt `stefan:implement-spec`.
 7. **Selbstprüfung:**
    - [ ] Jede User Story, jedes Ziel und jede Entscheidung aus Plan oder Interview ist durch ein `REQ-xx` abgedeckt, jeder Nicht-Umfang steht unter „Nicht im Umfang“.
-   - [ ] Jede Zielplattform hat ein Test-Gerät (mobil mit Touch und passender Engine) und Artboards; jedes Bedienelement ist einer Komponente der UI-Bibliothek zugeordnet.
+   - [ ] Jede Zielplattform hat ein Test-Gerät (mobil mit Touch und passender Engine) und Artboards. Legt der Stack eine UI-Bibliothek fest, ist jedes Bedienelement einer ihrer Komponenten zugeordnet.
    - [ ] Jede Aufgabe hat Testfälle, jede nutzersichtbare einen E2E-Testfall; alle Befehle sind konkret, kein „TBD“.
    - [ ] Was nur der Nutzer liefern kann (Secrets, Tokens, Zugänge), steht unter „Vorab vom Nutzer“.
    - [ ] Aufgaben, die dieselbe Datei oder Schnittstelle berühren, passen zusammen (was die eine erzeugt, nutzt die andere so).
