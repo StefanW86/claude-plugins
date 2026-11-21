@@ -128,60 +128,57 @@ class OpenTasksTest(unittest.TestCase):
             json.dump(data, f)
 
     def stop(self, cwd=None):
-        return run_script("open-tasks.py", {"hook_event_name": "Stop", "stop_hook_active": False,
-                                            "cwd": cwd or self.repo}, self.env)
+        """Hinweis an Claude (= weiterarbeiten) oder None (= darf stoppen)."""
+        r = run_script("open-tasks.py", {"hook_event_name": "Stop", "stop_hook_active": False,
+                                         "cwd": cwd or self.repo}, self.env)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        return json.loads(r.stdout)["hookSpecificOutput"]["additionalContext"] if r.stdout.strip() else None
 
     def test_open_task_blocks_stop(self):
         self.write_spec([("T01", "done", []), ("T02", "todo", ["T01"])], closing="todo")
-        r = self.stop()
-        self.assertEqual(r.returncode, 2)
-        self.assertIn("T02", r.stderr)
+        self.assertIn("T02", self.stop())
 
     def test_blocked_chain_allows_stop(self):
         self.write_spec([("T01", "blocked", []), ("T02", "todo", ["T01"]), ("T03", "todo", ["T02"])], closing="todo")
-        self.assertEqual(self.stop().returncode, 0)
+        self.assertIsNone(self.stop())
 
     def test_independent_task_after_blocked_blocks_stop(self):
         self.write_spec([("T01", "blocked", []), ("T02", "in_progress", [])], closing="todo")
-        r = self.stop()
-        self.assertEqual(r.returncode, 2)
-        self.assertIn("T02", r.stderr)
-        self.assertNotIn("T01", r.stderr)
+        msg = self.stop()
+        self.assertIn("T02", msg)
+        self.assertNotIn("T01", msg)
 
     def test_open_closing_blocks_stop(self):
         self.write_spec([("T01", "done", [])], closing="todo")
-        r = self.stop()
-        self.assertEqual(r.returncode, 2)
-        self.assertIn("Abschluss", r.stderr)
+        self.assertIn("Abschluss", self.stop())
 
     def test_finished_allows_stop(self):
         self.write_spec([("T01", "done", [])], closing="done")
-        self.assertEqual(self.stop().returncode, 0)
+        self.assertIsNone(self.stop())
 
     def test_old_format_without_closing_allows_stop(self):
         self.write_spec([("T01", "done", [])])
-        self.assertEqual(self.stop().returncode, 0)
+        self.assertIsNone(self.stop())
 
     def test_inactive_unless_in_progress_on_matching_branch(self):
         self.write_spec([("T01", "todo", [])], status="Ready", closing="todo")
-        self.assertEqual(self.stop().returncode, 0)
+        self.assertIsNone(self.stop())
         self.write_spec([("T01", "todo", [])], closing="todo", nnnn="0004")
-        self.assertEqual(self.stop().returncode, 0)
+        self.assertIsNone(self.stop())
         git(self.repo, "switch", "-q", "-c", "fix/y")
         self.write_spec([("T01", "todo", [])], closing="todo")
-        self.assertEqual(self.stop().returncode, 0)
+        self.assertIsNone(self.stop())
 
     def test_project_dir_wins_over_cwd(self):
         self.write_spec([("T01", "todo", [])], closing="todo")
         clone = make_repo(os.path.join(self.base, "Clone"), branch="feat/0003-x")
         self.env["CLAUDE_PROJECT_DIR"] = self.repo
-        r = self.stop(cwd=clone)
-        self.assertEqual(r.returncode, 2)
-        self.assertIn("T01", r.stderr)
+        self.assertIn("T01", self.stop(cwd=clone))
 
     def test_outside_repo_and_invalid_input_allow_stop(self):
-        self.assertEqual(self.stop(cwd=self.base).returncode, 0)
-        self.assertEqual(run_script("open-tasks.py", "kein json", self.env).returncode, 0)
+        self.assertIsNone(self.stop(cwd=self.base))
+        r = run_script("open-tasks.py", "kein json", self.env)
+        self.assertEqual((r.returncode, r.stdout), (0, ""))
 
 
 if __name__ == "__main__":
