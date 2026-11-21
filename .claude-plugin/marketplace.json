@@ -1,0 +1,7 @@
+{
+  "name": "stefan-local",
+  "owner": { "name": "Stefan" },
+  "plugins": [
+    { "name": "stefan", "source": "./plugins/stefan", "description": "Stefans persönliche Skills" }
+  ]
+}
