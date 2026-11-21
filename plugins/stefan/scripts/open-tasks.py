@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Stop-Hook von implement-spec: schickt Claude zurück an die Arbeit, solange auf dem Branch
 feat/NNNN-… die Spec NNNN In Progress ist und bearbeitbare Aufgaben oder der Abschluss offen sind.
-blocked heißt: wartet auf den Nutzer, ebenso alles, was davon abhängt. Exit 2 = weiterarbeiten.
+blocked heißt: wartet auf den Nutzer, ebenso alles, was davon abhängt. Der Hinweis kommt als
+additionalContext: Claude arbeitet weiter, ohne dass die Oberfläche einen Hook-Fehler meldet.
 """
 import glob
 import json
@@ -68,8 +69,8 @@ def main():
     for path in sorted(glob.glob(os.path.join(root, "docs", "specs", f"{nnnn}-*.tasks.json"))):
         msg = problem(root, path)
         if msg:
-            print(msg, file=sys.stderr)
-            return 2
+            print(json.dumps({"hookSpecificOutput": {"hookEventName": "Stop", "additionalContext": msg}}))
+            return 0
     return 0
 
 
