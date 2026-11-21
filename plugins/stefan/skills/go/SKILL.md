@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Go
 
-Verkettet die Phasen-Skills. Jede Phase lädt ihren Skill per Skill-Tool und folgt ihm. Dessen „hier stoppen“ bzw. „nächsten Schritt empfehlen“ gilt nicht: nach dem Freigabepunkt geht es direkt mit der nächsten Phase weiter. Zwischen den Phasen nur eine Zeile Status („Plan steht → weiter mit Design“).
+Verkettet die Phasen-Skills. Jede Phase lädt ihren Skill per Skill-Tool und folgt ihm. Nach dem Freigabepunkt geht es ohne Empfehlungsschritt direkt mit der nächsten Phase weiter. Zwischen den Phasen nur eine Zeile Status („Plan steht → weiter mit Design“).
 
 ## Einstieg bestimmen (bei jedem Aufruf)
 - **Mit Idee als Argument:** neue Arbeit bei Phase 1. Läuft schon eine unfertige Arbeit, kurz fragen: fortsetzen oder neu beginnen.

@@ -10,7 +10,7 @@ Du prüfst die Umsetzung der Aufgabendatei aus deinem Auftrag; du hast den Code 
 
 Prüfe:
 - Deckt jeder Test seinen Testfall echt ab (Verhalten an öffentlichen Schnittstellen, erwartete Werte nicht aus dem Code abgeleitet)?
-- Sind die Anforderungen inkl. Edge Cases korrekt umgesetzt?
+- Sind die Anforderungen inkl. Edge Cases korrekt und allgemeingültig umgesetzt, nicht nur für die Testdaten?
 - Wurden Tests nach dem test-Commit geändert?
 - Wurde außerhalb der Aufgabe gebaut?
 

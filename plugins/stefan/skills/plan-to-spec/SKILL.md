@@ -10,14 +10,14 @@ Die Spec sagt *wie, in welcher Reihenfolge und woran „fertig“ erkennbar ist*
 ## Ablauf
 1. **Eingabe klären:**
    - **Plan übergeben:** lesen. Nicht `Accepted` oder lückenhaft (auch fehlende Pflichtthemen aus `stefan:grill-with-docs`) → nur die Lücken per Interview (wie unten) klären.
-   - **Kein Plan übergeben:** Liegt in `docs/plans/` ein passender Plan, kurz fragen, ob er gemeint ist. Sonst **Interview:** Skill `stefan:grill-with-docs` laden und dessen Pflichtthemen und Regeln zum Fragen, zu den Techniken und zum Abschluss befolgen. Abweichend davon keinen Plan schreiben, sondern nach der Bestätigung direkt mit Schritt 2 weitermachen. Der Nutzer entscheidet Ziel, Umfang, Nicht-Umfang, fachliches Verhalten und Constraints. Technische Details, die er nicht selbst festlegen will, werden Builder-Entscheidungen.
+   - **Kein Plan übergeben:** Liegt in `docs/plans/` ein passender Plan, kurz fragen, ob er gemeint ist. Sonst **Interview** nach Skill `stefan:grill-with-docs`, aber statt den Plan zu schreiben nach der Bestätigung direkt weiter mit Schritt 2.
    - **Design:** Ist laut `stefan:ui-design` ein Design nötig und gibt es für diesen Plan keine freigegebene Seite im Design-Canvas des Projekts → fragen, ob zuerst dieser Skill laufen soll. Das Design einmal im aktuellen Stand per Artifact-Tool lesen (`project/canvas.json`, dann nur die Artboards dieses Plans; der Nutzer kann von Hand geändert haben). Daraus Farben, Schriften, Komponenten, Ansichten und Zustände knapp in die Spec übernehmen und jeder Ansicht ihr Artboard zuordnen.
 2. **Fakten selbst sammeln:** Referenzprojekte aus den Constraints per `Explore`-Subagent (Stack, Versionen, Struktur, Test-Setup, Lint, Docker, CI, Deploy; nur Ergebnisliste zurück). Library-Versionen per Context7. CLAUDE.md, Memory und passende Skills (z. B. `deploy-neue-app`) beachten.
 3. **Lücken schließen:** Delegiertes („Left to the builder“) selbst entscheiden, mit Begründung. Fehlt Nicht-Delegiertes oder widerspricht sich etwas → Nutzer fragen, eine Frage pro `AskUserQuestion`. Nichts über Plan oder Interview hinaus bauen.
 4. **Aufgaben schneiden:**
-   - Vertikal: jede Aufgabe ist ein lauffähiges, testbares Inkrement. T01 = Fundament (Projektstruktur aus Abschnitt 2, Test-Runner inkl. aller Test-Viewports, Lint, Smoke-Test, alle Befehle laufen). Letzte = Deploy/CI, E2E, Prüfung aus frischem Clone.
+   - Vertikal: jede Aufgabe ist ein lauffähiges, testbares Inkrement. T01 = Fundament (Projektstruktur aus Abschnitt 2, Test-Runner inkl. E2E auf allen Test-Viewports, Lint, Smoke-Test, alle Befehle laufen). Letzte = Deploy/CI, gesamte E2E-Suite, Prüfung aus frischem Clone.
    - Jede passt in eine Session (Faustregel ≤ ~300 Zeilen Produktivcode).
-   - Testfälle direkt als Akzeptanzkriterien. Jede Anforderung `R-xx` gehört zu mindestens einer Aufgabe.
+   - Testfälle direkt als Akzeptanzkriterien; jede nutzersichtbare Aufgabe hat mindestens einen E2E-Testfall, erst dann gilt sie als fertig. Jede Anforderung `R-xx` gehört zu mindestens einer Aufgabe.
 5. **Größe bewerten:** Treffer zählen: ≥ 5 Aufgaben · ≥ 3 Schichten (DB, Server, UI, Deploy) · neues Projekt · ≥ ~800 Zeilen Code · externe Integration (Deploy, API, Auth).
    - 0–1 → **klein:** eine Session, keine Subagenten. Aufgaben stehen in der Spec.
    - ≥ 2 → **groß:** Orchestrator, ein Subagent pro Aufgabe (nacheinander), je Aufgabe ein frischer Review-Subagent. Jede Aufgabe bekommt eine **eigenständige Aufgabendatei**, damit der Subagent nur sie lesen muss, und in `tasks.json` ein `model`: `opus` für T01 und Aufgaben mit Architektur, breiter Integration oder heikler Logik (Nebenläufigkeit, Sicherheit, Algorithmen), sonst `sonnet`.
@@ -26,7 +26,8 @@ Die Spec sagt *wie, in welcher Reihenfolge und woran „fertig“ erkennbar ist*
    - Sprache des Plans bzw. Interviews. **Knapp halten**, weil jede Umsetzungs-Session sie liest: keine Begründungen aus dem Plan kopieren, keine Allgemeinplätze. Nur Projektspezifisches; den allgemeinen Ablauf (TDD, Subagenten, Reviews, Abschluss) regelt `stefan:implement-spec`.
 7. **Selbstprüfung:**
    - [ ] Jede User Story, jedes Ziel und jede Entscheidung aus Plan oder Interview ist durch ein `R-xx` abgedeckt, jeder Nicht-Umfang steht unter „Nicht im Umfang“.
-   - [ ] Jede Aufgabe hat Testfälle, alle Befehle sind konkret, kein „TBD“.
+   - [ ] Jede Aufgabe hat Testfälle, jede nutzersichtbare einen E2E-Testfall; alle Befehle sind konkret, kein „TBD“.
+   - [ ] Was nur der Nutzer liefern kann (Secrets, Tokens, Zugänge), steht unter „Vorab vom Nutzer“.
    - [ ] Aufgaben, die dieselbe Datei oder Schnittstelle berühren, passen zusammen (was die eine erzeugt, nutzt die andere so).
    - [ ] Bei „groß“: Jede Aufgabendatei ist ohne Spec lösbar.
-8. **Abschluss:** Pfad, Größe/Modus, Anzahl Aufgaben und wichtigste Builder-Entscheidungen nennen. Empfehlen: Spec reviewen, dann in einer neuen Session `/stefan:implement-spec docs/specs/NNNN-<slug>.md`.
+8. **Abschluss:** Pfad, Größe/Modus, Anzahl Aufgaben, wichtigste Builder-Entscheidungen und „Vorab vom Nutzer“ nennen. Empfehlen: Spec reviewen, dann in einer neuen Session `/stefan:implement-spec docs/specs/NNNN-<slug>.md`.

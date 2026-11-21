@@ -11,6 +11,7 @@
 - **Quelle:** <[Plan NNNN](../plans/NNNN-<slug>.md) | Interview vom YYYY-MM-DD> · **Fortschritt:** [tasks.json](NNNN-<slug>.tasks.json)
 - **Größe:** <klein|groß> (<Treffer>) → <eine Session | Orchestrator + Subagenten>
 - **Umsetzung:** Skill `stefan:implement-spec` (TDD, Reviews, Abschluss), Branch `feat/NNNN-<slug>`
+- **Vorab vom Nutzer:** <nur was Claude nicht selbst kann, mit Ort, z. B. Secret `DEPLOY_DISPATCH_TOKEN` im App-Repo, `TUNNEL_TOKEN` in Prod-`.env` | keine>
 
 ## 1. Umfang
 <2–3 Sätze Ziel.> **Nicht im Umfang:** <Stichworte>. **User Stories, Begriffe:** <nur ohne Plan>.
@@ -86,6 +87,7 @@ Eigenständig: enthält **nur**, was für diese Aufgabe nötig ist, und genug, u
 
 ## Testfälle
 - [ ] <Ebene>: Angenommen <…>, wenn <…>, dann <…>
+- [ ] <nur nutzersichtbare Aufgaben> E2E: <Ablauf aus Nutzersicht>
 - [ ] <nur UI-Aufgaben> Visuell, je Test-Viewport: eigener Screenshot entspricht in Aufbau, Stil und Zuständen dem Artboard (nur dieses per Artifact-Tool `read` mit `path` holen)
 
 ## Hinweise
@@ -96,6 +98,6 @@ Eigenständig: enthält **nur**, was für diese Aufgabe nötig ist, und genug, u
 ```json
 {"spec": "docs/specs/NNNN-<slug>.md", "mode": "small|large", "tasks": [
   {"id": "T01", "title": "<…>", "dependsOn": [], "requirements": ["R-01"], "model": "sonnet|opus", "status": "todo", "commit": null, "notes": ""}
-]}
+], "closing": {"status": "todo", "notes": ""}}
 ```
-`status`: todo → in_progress → done | blocked (Grund in `notes`). `model` nur bei `large`.
+`status`: todo → in_progress → done | blocked (wartet auf den Nutzer, Grund in `notes`). `closing`: todo → done nach Abschluss und Bericht, `notes` = Kurzbericht für die Abnahme. `model` nur bei `large`.
