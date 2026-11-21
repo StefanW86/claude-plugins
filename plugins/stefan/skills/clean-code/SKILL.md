@@ -22,3 +22,10 @@ description: Regeln für Code und Tests – TDD-Zyklus für Spec-Aufgaben und Bu
 - Gleiche Logik erst ab drei Vorkommen extrahieren; nur zufällig Gleiches nicht zusammenlegen.
 - Je Modul bzw. Klasse eine eigene Datei.
 - Bewusste Abweichung von einer Regel kurz begründen.
+
+## UI (bedienbar wie für einen Nutzer)
+- Bedienelemente aus der UI-Bibliothek des Projekts (z. B. shadcn Date Picker statt `<input type="date">`), keine nativen Browser-Steuerelemente, außer die Spec verlangt es. Jeder Zustand passt zum Theme, auch geöffnete Menüs, Popover und Picker im Dunkelmodus.
+- Was etwas öffnet (Karte, Zeile, Kachel), reagiert auf Klick bzw. Tap auf seiner ganzen Fläche, außer auf eigenen Bedienelementen darin; Hover und Zeiger zeigen das an.
+- Drag & Drop: Das Ziel reagiert, sobald der Zeiger darüber ist (z. B. dnd-kit `pointerWithin`, Fallback `rectIntersection`), nicht erst bei großer Überlappung. Ein Klick ohne Bewegung bleibt ein Klick; auf Touch-Geräten wird per Halten gezogen.
+- Mobile Zielplattformen: eigene Bedienung statt verkleinerter Desktop (Touch-Ziele ≥ 44 px, nichts nur per Hover, kein seitliches Scrollen der Seite).
+- UI-Tests mit realistischen Gesten statt Idealfall: neben die Beschriftung klicken, beim Ziehen nur knapp (≈ ¼) ins Ziel, mobil per Tap im Geräteprofil. Ein UI-Test muss bei schlechter Bedienung rot werden.

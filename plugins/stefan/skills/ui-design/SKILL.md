@@ -13,12 +13,12 @@ Reihenfolge: Plan (`grill-with-docs`) → **Design** → Spec (`plan-to-spec`). 
 3. **Grundlage sammeln.** Plan aus `docs/plans/` oder Beschreibung des Nutzers; fehlt UI-relevantes Verhalten → per `AskUserQuestion` klären, eine Frage pro Aufruf. Bestehende App ohne Canvas: vorhandenes Aussehen (Theme, Farben, Schriften, Komponenten) per `Explore`-Subagent erfassen.
 4. **Aussehen festlegen** – nur wenn es noch keins gibt (neue App, leerer Canvas, kein Design-System gewählt):
    - Skill `frontend-design:frontend-design` laden und seinen Design-Plan erstellen (Farben, Schrift, Layout, Prinzipien), gegen generische Standardlösungen prüfen.
-   - Plan dem Nutzer kurz vorlegen und freigeben lassen, erst dann bauen.
+   - Plan dem Nutzer kurz vorlegen und freigeben lassen, erst dann bauen. Mindestens eine Option ist eine neue Richtung; das Aussehen anderer Projekte des Nutzers ist nur eine Option unter mehreren.
    - Gibt es schon ein Aussehen: übernehmen, den Skill nicht laden. Einheitlichkeit geht vor Neuheit.
 5. **Bauen** im Canvas:
    - Pro Plan eine eigene Seite „NNNN <Titel>“. Neue Ansichten als neue Artboards; geänderte bestehende Ansichten direkt in ihrem Artboard anpassen statt kopieren.
    - Je Zielplattform aus dem Plan eigene Artboards in deren Auflösung (z. B. Desktop 1440, iPad 1024×1366, iPhone 390×844); mobil die Bedienung anpassen (Touch-Ziele, Navigation), nicht nur verkleinern.
-   - Ein Artboard pro Ansicht, wichtige Zustände (leer, viele Daten, Fehler, Dialoge) als eigene Artboards, realistische Beispieldaten.
+   - Ein Artboard pro Ansicht, wichtige Zustände (leer, viele Daten, Fehler, Dialoge, geöffnete Auswahl wie Datum oder Menü) als eigene Artboards, realistische Beispieldaten. Hat die App Hell/Dunkel: Dialoge und geöffnete Auswahlen auch dunkel.
    - Interaktiv nur so weit, dass die Bedienung erkennbar ist. Gestaltung mit den Mitteln des Ziel-Stacks (z. B. Tailwind-Werte, shadcn-Optik).
    - Bei Widersprüchen zwischen `frontend-design` und dem Design-Typ (z. B. Screenshots zur Prüfung) gilt der Design-Typ.
 6. **Abstimmen.** Link zur Seite nennen, Feedback und Kommentare einarbeiten, bis der Nutzer freigibt.

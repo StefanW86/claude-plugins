@@ -6,7 +6,9 @@ description: Interviews the user relentlessly about a plan, decision, or idea un
 Interview the user until you share a complete understanding. Track the decisions as a **design tree** in your head (each decision branches into the ones that depend on it). Never show the tree, a question queue, or progress counters.
 
 ## Mandatory topics
-Always settle these, even if the user does not raise them: **user stories**, **target platforms** (desktop, web, PWA on iPad/iPhone, native Android/iOS; relevant resolutions), **tech stack**, **frontend**, **backend**, **API**. The user may explicitly delegate a detail; record it under "Left to the builder". For each user story probe empty states, error states, validation, concurrent edits, and performance or security needs.
+Always settle these, even if the user does not raise them: **user stories**, **target platforms**, **tech stack**, **frontend**, **backend**, **API**. The user may explicitly delegate a detail; record it under "Left to the builder". For each user story probe empty states, error states, validation, concurrent edits, and performance or security needs.
+- **Target platforms:** a question of its own, `multiSelect: true`, one option per device (desktop browser, iPad, iPhone, Android phone). Ask what the app is designed, built and tested for, not which device the user mostly uses, and state the consequence: unselected platforms get no design and no tests. For each selected mobile device follow up: browser, installable PWA or native app.
+- **Tech stack, libraries, UI approach:** the user's other projects are one option, never the default. Always offer at least one current alternative they do not use yet (check via Context7 or the web: newer, better maintained, simpler) with trade-offs, and recommend on merit, not familiarity. Look into other projects only for what the user wants to reuse (e.g. the deploy pattern).
 
 ## Asking
 - **Exactly one question per turn**, via `AskUserQuestion`, your recommendation first. At most one short line of text before the call. Plain text only if the tool is unavailable.
