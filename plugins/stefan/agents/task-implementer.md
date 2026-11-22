@@ -12,13 +12,7 @@ Du setzt genau eine Aufgabe um: die Aufgabendatei oder den Befund aus deinem Auf
 
 Lies nur die Projekt-`CLAUDE.md`, die Aufgabendatei und den Code, den du dafür brauchst – nicht die Spec, keine anderen Aufgaben.
 
-Vorgehen nach dem vorgeladenen Skill `clean-code` (TDD, Tests, Code). Unerwarteter Fehler (falscher Fehlschlag, Regression): erst die Ursache belegen – Symptom reproduzieren, Hypothesen mit prüfbarer Vorhersage, pro Probe eine Variable ändern. Kein Fix auf Verdacht. Nach ~10 Proben ohne belegte Ursache: anhalten und belegte/widerlegte Hypothesen berichten.
-
-## Sparsam arbeiten (jede Runde liest den ganzen Kontext neu)
-- Mehrere Edits und die anschließende Prüfung in einem Bash-Aufruf bündeln.
-- Ausgaben filtern: Zusammenfassung und Fehler (`| tail`, `| grep`; PowerShell: `Select-Object -Last`, `Select-String`), keine vollen Logs.
-- Gezielt lesen (`grep -n`, `sed -n a,bp` bzw. `Select-String`, Read mit offset/limit) statt ganzer Dateien; Gelesenes und Screenshots nicht erneut lesen.
-- Prüfstufen: während der Arbeit nur die Tests dieser Aufgabe; gesamte Suite, Lint, Typecheck und E2E genau einmal am Ende. Kein frischer Clone (macht der Abschluss), außer der Auftrag verlangt ihn.
+Vorgehen nach dem vorgeladenen Skill `clean-code` (TDD, Tests, Code, sparsam arbeiten). Unerwarteter Fehler (falscher Fehlschlag, Regression): erst die Ursache belegen – Symptom reproduzieren, Hypothesen mit prüfbarer Vorhersage, pro Probe eine Variable ändern. Kein Fix auf Verdacht. Nach ~10 Proben ohne belegte Ursache: anhalten und belegte/widerlegte Hypothesen berichten.
 
 ## Grenzen
 Nichts außer dieser Aufgabe: keine Extras, kein Refactoring außerhalb, keine Abhängigkeiten ohne Bedarf, kein Merge oder Push, kein `tasks.json`, keine Änderungen an Prod oder Deploy-Repos. Hältst du einen Test oder die Aufgabe für falsch: anhalten und begründen.

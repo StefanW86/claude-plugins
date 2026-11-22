@@ -1,6 +1,6 @@
 ---
 name: clean-code
-description: Regeln für Code und Tests – TDD-Zyklus für Spec-Aufgaben und Bugfixes, Testqualität, Einfachheit. Verwenden beim Schreiben, Refaktorieren oder Reviewen von Code oder Tests.
+description: Regeln für Code und Tests – TDD-Zyklus für Spec-Aufgaben und Bugfixes, Testqualität, Einfachheit, sparsames Arbeiten. Verwenden beim Schreiben, Refaktorieren oder Reviewen von Code oder Tests.
 ---
 
 # Code und Tests
@@ -9,6 +9,12 @@ description: Regeln für Code und Tests – TDD-Zyklus für Spec-Aufgaben und Bu
 1. **Red:** Tests aus den Testfällen schreiben (bei Befund oder Bug: ein Test, der ihn zeigt), ausführen, Fehlschlag aus dem richtigen Grund bestätigen. Commit `test(Txx): …` bzw. `test(fix): …`.
 2. **Green:** minimal implementieren bis grün. Tests dabei nicht ändern.
 3. **Refactor:** aufräumen; gesamte Suite, Lint, Typecheck grün. Commit `feat(Txx): …` bzw. `fix: …`.
+
+## Sparsam arbeiten (jede Runde liest den ganzen Kontext neu)
+- Mehrere Lese- bzw. Edit-Schritte und die anschließende Prüfung in einem Shell-Aufruf bündeln.
+- Gezielt lesen (`grep -n`, `sed -n a,bp` bzw. `Select-String`, Read mit offset/limit) statt ganzer Dateien; Gelesenes und Screenshots nicht erneut lesen.
+- Ausgaben kürzen, Fehlermeldungen aber vollständig behalten, damit kein zweiter Lauf nur zum Lesen nötig ist: z. B. `--reporter=line 2>&1 | tail -40` statt `tail -3` (PowerShell: `Select-Object -Last 40`).
+- Prüfstufen: während der Arbeit nur betroffene Tests; gesamte Suite, Lint, Typecheck und E2E einmal am Ende. Schlägt etwas fehl: nur die fehlgeschlagenen Tests bis grün, dann die Suite ein letztes Mal. `--repeat-each` nur bei konkretem Verdacht auf instabile Tests. Frischer Clone nur im Abschluss.
 
 ## Tests
 - Verhalten an öffentlichen Schnittstellen (Seams) prüfen, nicht Interna.

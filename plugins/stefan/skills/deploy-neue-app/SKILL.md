@@ -13,4 +13,6 @@ description: Konventionen für Entwicklung und Deployment neuer Apps auf dem Hom
 - Secrets nur in `/home/stefan/<app>/.env` (chmod 600), nie im Repo.
 - `DEPLOY_DISPATCH_TOKEN` (Secret im App-Repo) und `TUNNEL_TOKEN` liefert der Nutzer → in der Spec unter „Vorab vom Nutzer“.
 - Healthcheck `/api/health` einbauen. Datenbanken in `~/backup.sh` aufnehmen (Snapshot vor dem Backup).
+- Vorschau für den Nutzer: Produktions-Build wie Prod, z. B. `compose.preview.yml` (eigener Port, eigene Daten, Projektname `<app>-preview`); Befehl und LAN-URL ins Projekt-`CLAUDE.md`.
+- Next.js: `allowedDevOrigins` mit LAN-IP und Hostname des Hosts (`hostname -I`, `hostname`) in `next.config`, sonst ist der Dev-Server von anderen Geräten aus nicht bedienbar (Seite lädt, reagiert aber nicht).
 - E2E-Tests nie gegen Prod, sondern gegen eine lokale Instanz auf einem eigenen Port. Lokale Server per PID auf dem Port beenden, nie per `pkill -f` (das trifft Prod).
