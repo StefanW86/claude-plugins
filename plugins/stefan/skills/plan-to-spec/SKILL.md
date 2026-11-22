@@ -30,6 +30,7 @@ Die Spec sagt *wie, in welcher Reihenfolge und woran „fertig“ erkennbar ist*
    - [ ] Jede Zielplattform hat ein Test-Gerät (mobil mit Touch und passender Engine) und Artboards. Legt der Stack eine UI-Bibliothek fest, ist jedes Bedienelement einer ihrer Komponenten zugeordnet.
    - [ ] Jede Aufgabe hat Testfälle, jede nutzersichtbare einen E2E-Testfall; alle Befehle sind konkret, kein „TBD“.
    - [ ] Was nur der Nutzer liefern kann (Secrets, Tokens, Zugänge), steht unter „Vorab vom Nutzer“.
+   - [ ] Bestehendes Projekt: Jede neue bzw. geänderte Anforderung ist gegen die vorhandenen Tests und Plattformvorgaben geprüft (`grep` in den Tests nach betroffenen Abläufen, Maßen, Geräten). Was bestehende Tests brechen würde, ist mit dem Nutzer geklärt und steht als bewusste Änderung samt anzupassender Tests in der Aufgabe.
    - [ ] Aufgaben, die dieselbe Datei oder Schnittstelle berühren, passen zusammen (was die eine erzeugt, nutzt die andere so).
    - [ ] Bei „groß“: Jede Aufgabendatei ist ohne Spec lösbar.
 8. **Abschluss:** Pfad, Größe/Modus, Anzahl Aufgaben, wichtigste Builder-Entscheidungen und „Vorab vom Nutzer“ nennen. Empfehlen: Spec reviewen, dann in einer neuen Session `/stefan:implement docs/specs/NNNN-<slug>.md`.
