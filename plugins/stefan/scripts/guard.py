@@ -5,7 +5,9 @@
   (trifft auch Prod); lokale Server per PID auf dem Port beenden.
 - Prod-Checkouts = Git-Repos direkt unter $HOME außer *-work. Sie ändert nur der Deploy:
   Edit/Write dort verboten (außer .env), Git-Änderungen verboten, andere Schreibbefehle: Rückfrage.
-- Commit auf main/master verboten (außer erstem Commit und Merge-/Squash-Abschluss).
+- Commit auf main/master verboten (außer erstem Commit und Merge-/Squash-Abschluss); ein Branchwechsel
+  vorher im selben Befehl zählt.
+- Commit mit Co-Authored-By-Trailer verboten (Vorgabe des Nutzers).
 Gilt für Bash (Linux, Git Bash unter Windows) und PowerShell.
 Textabgleich ist ein Sicherheitsnetz, keine Sicherheitsgrenze.
 """
@@ -30,6 +32,8 @@ KILL_BY_NAME = "Prozesse nicht nach Namen beenden, das trifft auch Prod. Lokale 
 PREFIXES = {"sudo", "nohup", "time", "command", "exec", "env"}
 REDIRECTS = {">", ">>", "&>", "&>>", ">|"}
 SEPARATORS = {";", "&&", "||", "|", "&", "|&", ";;", "(", ")"}
+CO_AUTHOR = re.compile(r"co-authored-by\s*[:=]", re.I)
+CREATE_FLAGS = {"-b", "-B", "-c", "-C", "--create", "--force-create", "--orphan"}
 HEREDOC = re.compile(r"(<<-?\s*(['\"]?)(\w+)\2)([^\n]*)\n.*?^[ \t]*\3[ \t]*$", re.S | re.M)
 
 
@@ -120,6 +124,19 @@ def git_call(seg, cwd):
     return (d, seg[i], seg[i + 1:]) if i < len(seg) else None
 
 
+def switch_target(sub, args):
+    """Branch, auf den checkout/switch wechselt; None, wenn unklar (z. B. checkout einer Datei)."""
+    for i, a in enumerate(args):
+        if a in CREATE_FLAGS:
+            return args[i + 1] if i + 1 < len(args) else None
+    names = [a for a in args if not a.startswith("-")]
+    if "--" in args or not names:
+        return None
+    if sub == "switch" or names[0] in MAIN:
+        return names[0]
+    return None
+
+
 def commit_on_main(d):
     if branch(d) not in MAIN or git_out(d, "rev-parse", "-q", "--verify", "HEAD") is None:
         return False  # anderer Branch oder erster Commit
@@ -134,7 +151,7 @@ def commit_on_main(d):
 def check_shell(command, cwd, powershell=False):
     if powershell:  # Backslash ist dort Pfadtrenner, kein Escape
         command = command.replace("\\", "/")
-    d, ask = cwd, None
+    d, ask, switched = cwd, None, {}
     for seg in map(strip_prefixes, segments(command)):
         if not seg:
             continue
@@ -146,11 +163,16 @@ def check_shell(command, cwd, powershell=False):
             continue
         call = git_call(seg, d)
         if call:
-            gd, sub, _ = call
+            gd, sub, args = call
             root = prod_root(gd)
             if root and sub in GIT_WRITE:
                 decide("deny", f"{root} ist ein Prod-Checkout, den nur der Deploy aktualisiert.")
-            if sub == "commit" and commit_on_main(gd):
+            if sub in ("checkout", "switch") and switch_target(sub, args):
+                switched[gd] = switch_target(sub, args)
+            if sub == "commit" and CO_AUTHOR.search(command):
+                decide("deny", "Ohne Co-Authored-By committen (Vorgabe des Nutzers): denselben Commit ohne diese "
+                               "Zeile wiederholen.")
+            if sub == "commit" and (switched[gd] in MAIN if gd in switched else commit_on_main(gd)):
                 decide("deny", "Nie direkt auf main committen: erst Branch anlegen (git switch -c feat/…), "
                                "die Änderungen wandern mit.")
             continue

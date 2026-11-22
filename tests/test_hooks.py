@@ -64,6 +64,17 @@ class GuardTest(unittest.TestCase):
     def test_commit_on_branch_allowed(self):
         self.assertIsNone(self.bash("git add -A && git commit -m \"$(cat <<'EOF'\nfeat: x\n\nmain don't\nEOF\n)\""))
 
+    def test_commit_after_branch_switch_in_same_command_allowed(self):
+        for sw in ("git checkout -b feat/x", "git switch -c feat/x", "git switch feat/x"):
+            self.assertIsNone(self.bash(f"cd {self.main} && {sw} && git add -A && git commit -m x"), sw)
+        self.assertEqual(self.bash(f"cd {self.main} && git switch -c feat/x && git switch main && git commit -m x"), "deny")
+
+    def test_commit_with_co_author_trailer_denied(self):
+        self.assertEqual(self.bash('git commit -qm "feat: x\n\nCo-Authored-By: Claude <noreply@anthropic.com>"'), "deny")
+        self.assertEqual(self.bash("git commit -F- <<'EOF'\nfeat: x\n\nco-authored-by: A <a@b>\nEOF"), "deny")
+        self.assertEqual(self.bash('git commit -m x --trailer "Co-authored-by: A <a@b>"'), "deny")
+        self.assertIsNone(self.bash("grep -rn Co-Authored-By . && git log -1"))
+
     def test_first_commit_and_merge_on_main_allowed(self):
         fresh = make_repo(os.path.join(self.home, "dev", "New"), commit=False)
         self.assertIsNone(self.bash("git commit -m init", cwd=fresh))
