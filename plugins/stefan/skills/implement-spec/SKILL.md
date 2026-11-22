@@ -12,7 +12,7 @@ hooks:
 
 ## Start (auch zum Fortsetzen)
 0. Lief in dieser Session schon andere Arbeit (z. B. Planung, Design), empfehlen: `/clear`, dann erneut aufrufen; die Spec enthält alles. Der Nutzer entscheidet.
-1. Bugfix ohne Spec → Modus Bugfix. Sonst angegebene Spec, sonst die neueste in `docs/specs/` mit offenen Aufgaben. Spec und `tasks.json` lesen. Im Modus groß die Aufgabendateien **nicht** selbst lesen.
+1. Projekt-`CLAUDE.md` beachten (Befehle, E2E-Weg, Nicht im Umfang). Bugfix ohne Spec → Modus Bugfix. Sonst angegebene Spec, sonst die neueste in `docs/specs/` mit offenen Aufgaben. Spec und `tasks.json` lesen. Im Modus groß die Aufgabendateien **nicht** selbst lesen.
 2. Branch `feat/NNNN-<slug>` von `main` anlegen oder auschecken. `git status`, `git log --oneline -10`, Tests ausführen. Ist die Ausgangslage nicht grün, zuerst mit dem Nutzer klären.
 3. **Vorab vom Nutzer** (Spec-Kopf) prüfen, soweit möglich (z. B. `gh secret list`); Fehlendes jetzt erfragen.
 4. Spec-Status → `In Progress`. `blocked`-Aufgaben, deren Grund erledigt ist → `todo`. Weiter mit der ersten Aufgabe, die nicht `done` ist und deren Abhängigkeiten erledigt sind. Sind alle Aufgaben und `closing` `done`: nur die Abnahme einholen (Kurzbericht aus `closing.notes`).
@@ -31,7 +31,7 @@ Diese Session orchestriert und schreibt keinen Produktivcode. Pro Aufgabe, stren
 1. Subagent `stefan:task-implementer` im Vordergrund starten, mit `model` aus der Aufgabe in `tasks.json` (fehlt es: Standard des Agenten). Auftrag nur: Pfad der Aufgabendatei, Verzeichnis, Branch.
 2. Bericht prüfen: Befehle mit Ausgabe vorhanden, rot → grün belegt? Hält er Test oder Aufgabe für falsch → `blocked`.
 3. Frischen Subagent `stefan:task-reviewer` mit demselben `model` starten. Auftrag: Pfad der Aufgabendatei und Commit vor der Aufgabe.
-4. Befunde am Code nachvollziehen; zutreffende vom selben Implementierer beheben lassen (SendMessage), dann erneut prüfen. Scheitert die Aufgabe zweimal am Review → `blocked`.
+4. Befunde am Code nachvollziehen; zutreffende von einem **frischen** `stefan:task-implementer` im Vordergrund beheben lassen (Auftrag: Befunde mit Datei:Zeile, Pfad der Aufgabendatei, Verzeichnis, Branch), nicht per SendMessage: der alte Kontext ist groß, und fortgesetzte Agenten laufen im Hintergrund. Danach frischer `stefan:task-reviewer` nur für den Fix (Auftrag: Befunde, Commit vor dem Fix). Scheitert die Aufgabe zweimal am Review → `blocked`.
 5. `tasks.json` aktualisieren.
 
 ## Modus Bugfix (ohne Spec)
@@ -44,5 +44,5 @@ Erst wenn keine Aufgabe mehr bearbeitbar ist. Sind Aufgaben `blocked`: nur Beric
 3. **Bedienung wie ein Nutzer** (nur bei UI-Änderungen): Auf jedem Test-Gerät und in jedem Theme der Spec jede User Story einmal mit dem E2E-Werkzeug gegen eine lokale Instanz durchspielen, mit realistischen Gesten nach Abschnitt „UI“ in `stefan:clean-code`. Screenshots inkl. geöffneter Elemente ansehen und mit dem Design vergleichen. Jede Abweichung ist ein Befund; ist eine Funktion auf einer Zielplattform unbrauchbar, ist das High.
 4. **Befunde prüfen und einstufen:** Jeden Befund erst am Code nachvollziehen; unzutreffende begründet verwerfen und im Bericht nennen, nicht umsetzen. Critical (Sicherheitslücke, Datenverlust), High (Kernfunktion kaputt), Medium (Workaround möglich), Low (kosmetisch). Critical, High und Medium beheben per TDD (erst ein Test, der die Lücke zeigt; im Modus groß per `stefan:task-implementer` mit dem Befund statt Aufgabendatei), danach das betroffene Review erneut. Low als Entscheidungsliste in den Bericht.
 5. **Alle Zielplattformen:** gesamte Suite und E2E auf allen Test-Geräten der Spec, gegen eine lokale Instanz, nie gegen Prod.
-6. **Frischer Clone** (bei Bugfix nur, wenn Build, Abhängigkeiten oder Setup geändert): Branch in ein temporäres Verzeichnis klonen, install → build → test grün.
+6. **Frischer Clone** (einziger im ganzen Ablauf) (bei Bugfix nur, wenn Build, Abhängigkeiten oder Setup geändert): Branch in ein temporäres Verzeichnis klonen, install → build → test grün.
 7. **Bericht an den Nutzer:** erledigte Aufgaben, Review-Ergebnisse, offene Befunde und Fragen. Mit Spec: Kurzfassung in `closing.notes`, `closing.status` → `done`, committen. Erst nach Abnahme: ggf. Spec-Status → `Done` committen, dann Merge nach `main` und Push.
