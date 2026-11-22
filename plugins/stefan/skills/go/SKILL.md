@@ -27,4 +27,4 @@ Verkettet die Phasen-Skills. Jede Phase lädt ihren Skill per Skill-Tool und fol
    - „Freigeben, frische Session (Recommended)“: Planung belastet den Kontext der Umsetzung nicht. Der Nutzer führt `/clear` aus, dann `/stefan:go`.
    - „Freigeben, hier weiter“: direkt Phase 4.
    - „Änderungen“: einarbeiten, erneut fragen.
-4. **Umsetzung:** `stefan:implement`. Freigabe: Abnahme durch den Nutzer, dann Merge und Push.
+4. **Umsetzung:** `stefan:implement`. Freigabe: Abnahme durch den Nutzer, dann Merge, Push und gemergten Branch lokal und auf `origin` löschen.

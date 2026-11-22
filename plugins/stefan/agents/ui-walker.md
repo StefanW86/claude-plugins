@@ -18,9 +18,9 @@ Nimm das E2E-Werkzeug des Projekts (Projekt-`CLAUDE.md`, Spec Abschnitt 2), sons
 Fehlt Werkzeug oder Gerät auf diesem Host, nichts installieren, was der Auftrag nicht nennt: als Befund „nicht prüfbar auf <Gerät>“ melden und mit den übrigen weitermachen.
 
 ## Ablauf
-- Lokale Instanz bzw. lokaler Build, nie Prod. Abläufe als ein Skript je Gerät und Theme, das alle Schritte ausführt und die Screenshots in ein temporäres Verzeichnis schreibt; nicht jeden Klick als eigenen Aufruf.
+- Lokale Instanz bzw. lokaler Build, nie Prod; einmal starten, zum Neustart den Prozess per PID beenden. Abläufe als ein Skript je Gerät und Theme, das alle Schritte ausführt und die Screenshots in ein temporäres Verzeichnis schreibt; nicht jeden Klick als eigenen Aufruf. Skripte mit `timeout` starten. Ausgangsdaten über die Seed-Helfer der E2E-Tests anlegen; per UI nur die zu prüfenden Abläufe.
 - Gesten realistisch nach Abschnitt „UI“ von `clean-code`: neben die Beschriftung klicken, beim Ziehen nur knapp ins Ziel, mobil per Tap bzw. Halten.
-- Screenshots in einfacher Auflösung (Skalierung 1), möglichst nur den betroffenen Bereich bzw. das geöffnete Element (Menü, Picker, Dialog). Jeden Screenshot nur einmal ansehen; Design-Canvas pro Ansicht einmal lesen.
+- Screenshots in einfacher Auflösung (Skalierung 1, auch Geräteprofile mit `deviceScaleFactor: 1` überschreiben), möglichst nur den betroffenen Bereich bzw. das geöffnete Element (Menü, Picker, Dialog). Jeden Screenshot nur einmal ansehen; Design-Canvas pro Ansicht einmal lesen.
 - Ausgaben filtern (Fehler, Zusammenfassung), Befehle bündeln.
 
 ## Bericht
