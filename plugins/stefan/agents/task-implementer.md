@@ -16,8 +16,8 @@ Vorgehen nach dem vorgeladenen Skill `clean-code` (TDD, Tests, Code). Unerwartet
 
 ## Sparsam arbeiten (jede Runde liest den ganzen Kontext neu)
 - Mehrere Edits und die anschließende Prüfung in einem Bash-Aufruf bündeln.
-- Ausgaben filtern: Zusammenfassung und Fehler (`| tail`, `| grep`), keine vollen Logs.
-- Gezielt lesen (`grep -n`, `sed -n a,bp`) statt ganzer Dateien; Gelesenes und Screenshots nicht erneut lesen.
+- Ausgaben filtern: Zusammenfassung und Fehler (`| tail`, `| grep`; PowerShell: `Select-Object -Last`, `Select-String`), keine vollen Logs.
+- Gezielt lesen (`grep -n`, `sed -n a,bp` bzw. `Select-String`, Read mit offset/limit) statt ganzer Dateien; Gelesenes und Screenshots nicht erneut lesen.
 - Prüfstufen: während der Arbeit nur die Tests dieser Aufgabe; gesamte Suite, Lint, Typecheck und E2E genau einmal am Ende. Kein frischer Clone (macht der Abschluss), außer der Auftrag verlangt ihn.
 
 ## Grenzen

@@ -54,6 +54,7 @@ class GuardTest(unittest.TestCase):
 
     def test_kill_as_text_allowed(self):
         self.assertIsNone(self.bash("echo 'pkill -f x' && grep -r killall ."))
+        self.assertIsNone(self.bash("kill -n 9 4711"))
 
     def test_commit_on_main_denied(self):
         self.assertEqual(self.bash("git commit -m x", cwd=self.main), "deny")
@@ -99,6 +100,42 @@ class GuardTest(unittest.TestCase):
     def test_write_command_into_prod_asks(self):
         self.assertEqual(self.bash(f"sed -i 's/a/b/' {self.prod}/compose.yml"), "ask")
         self.assertEqual(self.bash(f"cat <<'EOF' > {self.prod}/notes.txt\nx\nEOF"), "ask")
+
+    def ps(self, command, cwd=None):
+        return self.decision("PowerShell", {"command": command}, cwd)
+
+    def test_powershell_kill_by_name_denied(self):
+        self.assertEqual(self.ps("Stop-Process -Name node -Force"), "deny")
+        self.assertEqual(self.ps("Get-Process node | Stop-Process"), "deny")
+        self.assertEqual(self.ps("taskkill /IM node.exe /F"), "deny")
+        self.assertEqual(self.ps("kill -Name dotnet"), "deny")
+
+    def test_powershell_kill_by_pid_allowed(self):
+        self.assertIsNone(self.ps("Stop-Process -Id 4711"))
+        self.assertIsNone(self.ps("taskkill /PID 4711 /F"))
+
+    def test_powershell_git_rules(self):
+        self.assertEqual(self.ps(f"Set-Location {self.main}; git commit -m x"), "deny")
+        self.assertEqual(self.ps("git pull", cwd=self.prod), "deny")
+        self.assertIsNone(self.ps("git commit -m x"))
+
+    def test_powershell_write_into_prod_asks(self):
+        prod_win = self.prod.replace("/", "\\")
+        self.assertEqual(self.ps(f"Remove-Item -Recurse {prod_win}\\node_modules"), "ask")
+        self.assertEqual(self.ps(f"'x' | Out-File {self.prod}/a.txt"), "ask")
+        self.assertIsNone(self.ps(f"Get-Content {prod_win}\\compose.yml"))
+
+    def test_utf8_input(self):
+        r = subprocess.run(["python3", os.path.join(SCRIPTS, "guard.py")], capture_output=True, env=self.env,
+                           input=json.dumps({"tool_name": "Bash", "tool_input": {"command": "pkill ä"},
+                                             "cwd": self.dev}, ensure_ascii=False).encode("utf-8"))
+        self.assertIn(b'"deny"', r.stdout)
+
+    def test_launcher_runs_guard(self):
+        r = subprocess.run(["sh", os.path.join(SCRIPTS, "run.sh"), "guard.py"], capture_output=True, text=True,
+                           env=self.env, input=json.dumps({"tool_name": "Bash", "tool_input": {"command": "pkill x"},
+                                                           "cwd": self.dev}))
+        self.assertEqual(json.loads(r.stdout)["hookSpecificOutput"]["permissionDecision"], "deny")
 
     def test_invalid_input_ignored(self):
         r = run_script("guard.py", "kein json", self.env)

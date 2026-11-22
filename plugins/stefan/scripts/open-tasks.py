@@ -58,7 +58,7 @@ def problem(root, path):
 
 def main():
     try:
-        data = json.load(sys.stdin)
+        data = json.loads(sys.stdin.buffer.read().decode("utf-8"))
     except ValueError:
         return 0
     if not isinstance(data, dict):

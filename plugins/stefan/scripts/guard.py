@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """PreToolUse-Hook: Schutzregeln, die nicht nur als Anweisung gelten sollen.
 
-- pkill/killall: verboten (trifft auch Prod); lokale Server per PID auf dem Port beenden.
+- Prozesse nach Namen beenden (pkill, killall, Stop-Process ohne -Id, taskkill ohne /PID): verboten
+  (trifft auch Prod); lokale Server per PID auf dem Port beenden.
 - Prod-Checkouts = Git-Repos direkt unter $HOME außer *-work. Sie ändert nur der Deploy:
   Edit/Write dort verboten (außer .env), Git-Änderungen verboten, andere Schreibbefehle: Rückfrage.
 - Commit auf main/master verboten (außer erstem Commit und Merge-/Squash-Abschluss).
+Gilt für Bash (Linux, Git Bash unter Windows) und PowerShell.
 Textabgleich ist ein Sicherheitsnetz, keine Sicherheitsgrenze.
 """
 import json
@@ -17,7 +19,14 @@ import sys
 MAIN = {"main", "master"}
 GIT_WRITE = {"commit", "checkout", "switch", "reset", "pull", "merge", "rebase", "stash", "clean",
              "restore", "apply", "am", "cherry-pick", "revert", "rm", "mv"}
-WRITE_CMDS = {"rm", "mv", "cp", "tee", "touch", "chmod", "chown", "ln", "mkdir", "rsync", "truncate", "install"}
+WRITE_CMDS = {"rm", "mv", "cp", "tee", "touch", "chmod", "chown", "ln", "mkdir", "rsync", "truncate", "install",
+              # PowerShell (Kleinschreibung) inkl. Aliasse
+              "set-content", "add-content", "clear-content", "out-file", "new-item", "remove-item", "copy-item",
+              "move-item", "rename-item", "sc", "ac", "ni", "ri", "del", "erase", "rd", "rmdir", "cpi", "copy",
+              "mi", "move", "rni", "ren"}
+CD_CMDS = {"cd", "pushd", "set-location", "sl", "chdir", "push-location"}
+KILL_BY_NAME = "Prozesse nicht nach Namen beenden, das trifft auch Prod. Lokale Server per PID auf dem Port beenden: " \
+               "kill $(lsof -ti :PORT) bzw. Stop-Process -Id (Get-NetTCPConnection -LocalPort PORT).OwningProcess."
 PREFIXES = {"sudo", "nohup", "time", "command", "exec", "env"}
 REDIRECTS = {">", ">>", "&>", "&>>", ">|"}
 SEPARATORS = {";", "&&", "||", "|", "&", "|&", ";;", "(", ")"}
@@ -31,12 +40,18 @@ def decide(decision, reason):
 
 
 def resolve(path, base):
+    m = re.match(r"^/([a-zA-Z])(/|$)", path) if os.name == "nt" else None
+    if m:  # Git-Bash-Pfad /c/... → C:/...
+        path = f"{m.group(1)}:/{path[3:]}"
     return os.path.realpath(os.path.join(base, os.path.expanduser(path)))
 
 
 def prod_root(path):
     home = os.path.realpath(os.path.expanduser("~"))
-    top = os.path.relpath(path, home).split(os.sep)[0]
+    try:
+        top = os.path.relpath(path, home).split(os.sep)[0]
+    except ValueError:  # anderes Laufwerk
+        return None
     if top in (".", "..") or top.startswith(".") or top.endswith("-work"):
         return None
     root = os.path.join(home, top)
@@ -72,6 +87,20 @@ def segments(command):
     return result + [seg]
 
 
+def command_name(word):
+    name = os.path.basename(word.replace("\\", "/")).lower()
+    return name[:-4] if name.endswith(".exe") else name
+
+
+def kills_by_name(cmd, args, powershell):
+    if cmd in ("pkill", "killall"):
+        return True
+    lower = [a.lower() for a in args]
+    if cmd in ("stop-process", "spps") or (powershell and cmd == "kill" and any(a.startswith("-n") or a.startswith("-p") for a in lower)):
+        return not any(a in ("-id", "-i") for a in lower)
+    return cmd == "taskkill" and "/pid" not in lower
+
+
 def strip_prefixes(seg):
     i = 0
     while i < len(seg) and (seg[i] in PREFIXES or re.match(r"^\w+=", seg[i])):
@@ -81,7 +110,7 @@ def strip_prefixes(seg):
 
 def git_call(seg, cwd):
     """(Verzeichnis, Unterbefehl, Argumente) eines git-Aufrufs, sonst None."""
-    if not seg or os.path.basename(seg[0]) != "git":
+    if not seg or command_name(seg[0]) != "git":
         return None
     i, d = 1, cwd
     while i < len(seg) and seg[i].startswith("-"):
@@ -102,17 +131,18 @@ def commit_on_main(d):
 
 
 
-def check_bash(command, cwd):
+def check_shell(command, cwd, powershell=False):
+    if powershell:  # Backslash ist dort Pfadtrenner, kein Escape
+        command = command.replace("\\", "/")
     d, ask = cwd, None
     for seg in map(strip_prefixes, segments(command)):
         if not seg:
             continue
-        cmd = os.path.basename(seg[0])
-        if cmd in ("pkill", "killall"):
-            decide("deny", "pkill/killall trifft auch Prod-Prozesse. Lokale Server per PID auf dem Port "
-                           "beenden, z. B. kill $(lsof -ti :PORT).")
-        if cmd in ("cd", "pushd") and len(seg) > 1:
-            d = resolve(seg[1], d)
+        cmd = command_name(seg[0])
+        if kills_by_name(cmd, seg[1:], powershell):
+            decide("deny", KILL_BY_NAME)
+        if cmd in CD_CMDS and len(seg) > 1:
+            d = resolve(next((a for a in seg[1:] if not a.startswith("-")), "."), d)
             continue
         call = git_call(seg, d)
         if call:
@@ -142,16 +172,16 @@ def check_edit(path, cwd):
 
 
 def main():
-    try:
-        data = json.load(sys.stdin)
+    try:  # UTF-8 auch unter Windows, wo die Standardkodierung abweicht
+        data = json.loads(sys.stdin.buffer.read().decode("utf-8"))
     except ValueError:
         return
     if not isinstance(data, dict):
         return
     tool_input = data.get("tool_input") or {}
     cwd = data.get("cwd") or os.getcwd()
-    if data.get("tool_name") == "Bash":
-        check_bash(tool_input.get("command", ""), cwd)
+    if data.get("tool_name") in ("Bash", "PowerShell"):
+        check_shell(tool_input.get("command", ""), cwd, data.get("tool_name") == "PowerShell")
     elif tool_input.get("file_path") or tool_input.get("notebook_path"):
         check_edit(tool_input.get("file_path") or tool_input.get("notebook_path"), cwd)
 

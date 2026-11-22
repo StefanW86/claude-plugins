@@ -5,7 +5,7 @@ hooks:
   Stop:
     - hooks:
         - type: command
-          command: python3 "${CLAUDE_PLUGIN_ROOT}/scripts/open-tasks.py"
+          command: sh "${CLAUDE_PLUGIN_ROOT}/scripts/run.sh" open-tasks.py
 ---
 
 # Spec umsetzen

@@ -1,13 +1,13 @@
 {
-  "description": "Schutzregeln: kein pkill/killall, Prod-Checkouts nur per Deploy, nie direkt auf main",
+  "description": "Schutzregeln: Prozesse nicht nach Namen beenden, Prod-Checkouts nur per Deploy, nie direkt auf main",
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Bash|Edit|Write|MultiEdit|NotebookEdit",
+        "matcher": "Bash|PowerShell|Edit|Write|MultiEdit|NotebookEdit",
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/guard.py\"",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/scripts/run.sh\" guard.py",
             "timeout": 10
           }
         ]
