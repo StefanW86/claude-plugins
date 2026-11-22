@@ -69,10 +69,10 @@ class GuardTest(unittest.TestCase):
         open(os.path.join(self.main, ".git", "MERGE_HEAD"), "w").close()
         self.assertIsNone(self.bash("git commit --no-edit", cwd=self.main))
 
-    def test_push_to_main_asks(self):
-        self.assertEqual(self.bash("git push origin main"), "ask")
-        self.assertEqual(self.bash("git push -u origin HEAD:main"), "ask")
-        self.assertEqual(self.bash("git push", cwd=self.main), "ask")
+    def test_push_to_main_allowed(self):
+        self.assertIsNone(self.bash("git push origin main"))
+        self.assertIsNone(self.bash("git push -u origin HEAD:main"))
+        self.assertIsNone(self.bash("git push", cwd=self.main))
 
     def test_push_feature_allowed(self):
         self.assertIsNone(self.bash("git push -u origin feat/0001-x"))

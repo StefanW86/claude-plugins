@@ -5,7 +5,6 @@
 - Prod-Checkouts = Git-Repos direkt unter $HOME außer *-work. Sie ändert nur der Deploy:
   Edit/Write dort verboten (außer .env), Git-Änderungen verboten, andere Schreibbefehle: Rückfrage.
 - Commit auf main/master verboten (außer erstem Commit und Merge-/Squash-Abschluss).
-- Push nach main/master: Rückfrage (Abnahme).
 Textabgleich ist ein Sicherheitsnetz, keine Sicherheitsgrenze.
 """
 import json
@@ -102,19 +101,6 @@ def commit_on_main(d):
     return True
 
 
-def pushes_main(d, args):
-    if "--all" in args or "--mirror" in args:
-        return True
-    refspecs = [a for a in args if not a.startswith("-")][1:]
-    if not refspecs:
-        return branch(d) in MAIN
-    for ref in refspecs:
-        dest = ref.lstrip("+").split(":")[-1]
-        dest = dest[len("refs/heads/"):] if dest.startswith("refs/heads/") else dest
-        if (branch(d) if dest == "HEAD" else dest) in MAIN:
-            return True
-    return False
-
 
 def check_bash(command, cwd):
     d, ask = cwd, None
@@ -130,15 +116,13 @@ def check_bash(command, cwd):
             continue
         call = git_call(seg, d)
         if call:
-            gd, sub, args = call
+            gd, sub, _ = call
             root = prod_root(gd)
             if root and sub in GIT_WRITE:
                 decide("deny", f"{root} ist ein Prod-Checkout, den nur der Deploy aktualisiert.")
             if sub == "commit" and commit_on_main(gd):
                 decide("deny", "Nie direkt auf main committen: erst Branch anlegen (git switch -c feat/…), "
                                "die Änderungen wandern mit.")
-            if sub == "push" and pushes_main(gd, args):
-                ask = "Push nach main erst nach Abnahme durch den Nutzer."
             continue
         targets = [seg[i + 1] for i in range(len(seg) - 1) if seg[i] in REDIRECTS]
         if cmd in WRITE_CMDS or (cmd == "sed" and any(t.startswith("-i") for t in seg[1:])):
