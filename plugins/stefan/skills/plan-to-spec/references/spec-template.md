@@ -10,7 +10,7 @@
 - **Status:** Ready · **Datum:** YYYY-MM-DD
 - **Quelle:** <[Plan NNNN](../plans/NNNN-<slug>.md) | Interview vom YYYY-MM-DD> · **Fortschritt:** [tasks.json](NNNN-<slug>.tasks.json)
 - **Größe:** <klein|groß> (<Treffer>) → <eine Session | Orchestrator + Subagenten>
-- **Umsetzung:** Skill `stefan:implement-spec` (TDD, Reviews, Abschluss), Branch `feat/NNNN-<slug>`
+- **Umsetzung:** Skill `stefan:implement` (TDD, Reviews, Abschluss), Branch `feat/NNNN-<slug>`
 - **Vorab vom Nutzer:** <nur was Claude nicht selbst kann, mit Ort, z. B. Secret `DEPLOY_DISPATCH_TOKEN` im App-Repo, `TUNNEL_TOKEN` in Prod-`.env` | keine>
 
 ## 1. Umfang
@@ -19,7 +19,7 @@
 
 ## 2. Stack, Plattformen, Struktur
 - <Framework + Versionen, DB/ORM, Test-Tools, UI-Lib>
-- **Plattformen:** <z. B. Desktop-Web, PWA iPad/iPhone, Android/iOS nativ> · **Test-Geräte:** <je Plattform ein Gerät bzw. Profil im E2E-Werkzeug, mobil mit Touch und passender Engine, z. B. Desktop 1440×900, iPhone-Profil mit WebKit, Windows 1920×1080; hat die App Hell/Dunkel, beide Themes>
+- **Plattformen:** <z. B. Desktop-Web, PWA iPad/iPhone, Android/iOS nativ> · **Test-Geräte:** <je Plattform ein Gerät bzw. Profil im E2E-Werkzeug, mobil mit Touch und passender Engine, z. B. Desktop 1440×900, iPhone-Profil mit WebKit, Windows 1920×1080; Desktop-App (z. B. .NET WPF/WinForms/WinUI) per UI-Automation-Werkzeug wie FlaUI oder Appium; hat die App Hell/Dunkel, beide Themes>
 - **Projektstruktur** (legt T01 an): <Ordnerbaum mit Zweck je Ordner, Ort der Tests, Namenskonventionen>
 
 | Zweck | Befehl |

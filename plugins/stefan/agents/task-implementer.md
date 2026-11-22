@@ -1,9 +1,9 @@
 ---
 name: task-implementer
-description: Setzt genau eine Aufgabendatei aus docs/specs/ oder einen einzelnen Review-Befund per TDD um. Nur für implement-spec.
+description: Setzt genau eine Aufgabendatei aus docs/specs/ oder einen einzelnen Review-Befund per TDD um. Nur für implement.
 model: sonnet
 maxTurns: 150
-tools: Bash, Read, Edit, Write, Artifact, ToolSearch, mcp__claude_ai_Context7__resolve-library-id, mcp__claude_ai_Context7__query-docs
+tools: Bash, PowerShell, Read, Edit, Write, Artifact, ToolSearch, mcp__claude_ai_Context7__resolve-library-id, mcp__claude_ai_Context7__query-docs
 skills:
   - stefan:clean-code
 ---

@@ -21,10 +21,10 @@ Verkettet die Phasen-Skills. Jede Phase lädt ihren Skill per Skill-Tool und fol
 | alle Specs `Done` | nichts offen → nach neuer Idee fragen |
 
 ## Phasen und Freigabepunkte
-1. **Plan:** `stefan:grill-with-docs`. Freigabe: Bestätigung am Ende des Interviews. Kleines Feature → Phase 1 und 2 überspringen, Phase 3 ohne Plan (kurzes Interview). Bugfix → direkt `stefan:implement-spec` im Modus Bugfix, ohne Spec.
+1. **Plan:** `stefan:grill-with-docs`. Freigabe: Bestätigung am Ende des Interviews. Bugfix oder kleine Änderung (ein Bereich, wenige Dateien) → direkt `stefan:implement` im Modus Direkt, ohne Spec. Mittleres Feature → Phase 1 und 2 überspringen, Phase 3 ohne Plan (kurzes Interview).
 2. **Design** (nur wenn nötig): `stefan:ui-design`. Freigabe: Mockup vom Nutzer freigegeben.
 3. **Spec:** `stefan:plan-to-spec`. Freigabe per `AskUserQuestion`:
    - „Freigeben, frische Session (Recommended)“: Planung belastet den Kontext der Umsetzung nicht. Der Nutzer führt `/clear` aus, dann `/stefan:go`.
    - „Freigeben, hier weiter“: direkt Phase 4.
    - „Änderungen“: einarbeiten, erneut fragen.
-4. **Umsetzung:** `stefan:implement-spec`. Freigabe: Abnahme durch den Nutzer, dann Merge und Push.
+4. **Umsetzung:** `stefan:implement`. Freigabe: Abnahme durch den Nutzer, dann Merge und Push.

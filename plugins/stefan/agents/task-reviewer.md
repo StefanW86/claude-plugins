@@ -1,7 +1,7 @@
 ---
 name: task-reviewer
-description: Prüft die Umsetzung einer Aufgabendatei aus docs/specs/ gegen ihre Testfälle, ohne etwas zu ändern. Nur für implement-spec.
-tools: Bash, Read, Artifact
+description: Prüft die Umsetzung einer Aufgabendatei aus docs/specs/ gegen ihre Testfälle, ohne etwas zu ändern. Nur für implement.
+tools: Bash, PowerShell, Read, Artifact
 model: sonnet
 maxTurns: 40
 skills:

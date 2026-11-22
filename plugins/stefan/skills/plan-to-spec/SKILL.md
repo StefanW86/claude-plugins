@@ -15,7 +15,7 @@ Die Spec sagt *wie, in welcher Reihenfolge und woran „fertig“ erkennbar ist*
 2. **Fakten selbst sammeln:** Andere Projekte des Nutzers nur für das, was der Plan ausdrücklich übernimmt (z. B. Deploy-Muster), per `Explore`-Subagent, nur Ergebnisliste zurück. Versionen: aktuelle stabile per Context7 bzw. Registry, nicht aus anderen Projekten kopieren. CLAUDE.md, Memory und passende Skills (z. B. `deploy-neue-app`) beachten.
 3. **Lücken schließen:** Delegiertes („Left to the builder“) selbst entscheiden, mit Begründung. Bei Bibliotheken und Werkzeugen mindestens zwei aktuelle Optionen vergleichen, davon eine neuere; „wie in Projekt X“ allein ist kein Grund. Fehlt Nicht-Delegiertes oder widerspricht sich etwas → Nutzer fragen, eine Frage pro `AskUserQuestion`. Nichts über Plan oder Interview hinaus bauen.
 4. **Aufgaben schneiden:**
-   - Vertikal: jede Aufgabe ist ein lauffähiges, testbares Inkrement. T01 = Fundament (Projektstruktur aus Abschnitt 2, Test-Runner inkl. E2E auf allen Test-Viewports, Lint, Smoke-Test, alle Befehle laufen). Letzte = Deploy/CI (den frischen Clone prüft der Abschluss von `implement-spec`).
+   - Vertikal: jede Aufgabe ist ein lauffähiges, testbares Inkrement. T01 = Fundament (Projektstruktur aus Abschnitt 2, Test-Runner inkl. E2E auf allen Test-Viewports, Lint, Smoke-Test, alle Befehle laufen). Letzte = Deploy/CI (den frischen Clone prüft der Abschluss von `implement`).
    - Jede passt in eine Session (Faustregel ≤ ~300 Zeilen Produktivcode).
    - Testfälle direkt als Akzeptanzkriterien; jede nutzersichtbare Aufgabe hat mindestens einen E2E-Testfall, erst dann gilt sie als fertig. UI-Testfälle nach Abschnitt „UI“ in `stefan:clean-code` (realistische Gesten, jede Zielplattform). Jede Anforderung `REQ-xx` gehört zu mindestens einer Aufgabe.
 5. **Größe bewerten:** Treffer zählen: ≥ 5 Aufgaben · ≥ 3 Schichten (DB, Server, UI, Deploy) · neues Projekt · ≥ ~800 Zeilen Code · externe Integration (Deploy, API, Auth).
@@ -24,7 +24,7 @@ Die Spec sagt *wie, in welcher Reihenfolge und woran „fertig“ erkennbar ist*
 6. **Schreiben** nach [references/spec-template.md](references/spec-template.md):
    - **Projekt-`CLAUDE.md`** anlegen bzw. ergänzen, höchstens ~15 Zeilen, damit jeder Subagent es ohne Spec weiß: Befehle (Tabelle aus Abschnitt 2), E2E-Weg auf diesem Host (z. B. Browser per Docker), Design-URL, Plattformen/Themes, „Nicht im Umfang“ und bewusst akzeptierte Risiken.
    - `docs/specs/NNNN-<slug>.md` und `NNNN-<slug>.tasks.json`; bei „groß“ zusätzlich `docs/specs/NNNN-<slug>/Txx.md`. NNNN und Slug wie der Plan; ohne Plan: höchste Nummer in `docs/plans/` und `docs/specs/` + 1. Existiert die Spec → aktualisieren, Änderungen nennen.
-   - Sprache des Plans bzw. Interviews. **Knapp halten**, weil jede Umsetzungs-Session sie liest: keine Begründungen aus dem Plan kopieren, keine Allgemeinplätze. Nur Projektspezifisches; den allgemeinen Ablauf (TDD, Subagenten, Reviews, Abschluss) regelt `stefan:implement-spec`.
+   - Sprache des Plans bzw. Interviews. **Knapp halten**, weil jede Umsetzungs-Session sie liest: keine Begründungen aus dem Plan kopieren, keine Allgemeinplätze. Nur Projektspezifisches; den allgemeinen Ablauf (TDD, Subagenten, Reviews, Abschluss) regelt `stefan:implement`.
 7. **Selbstprüfung:**
    - [ ] Jede User Story, jedes Ziel und jede Entscheidung aus Plan oder Interview ist durch ein `REQ-xx` abgedeckt, jeder Nicht-Umfang steht unter „Nicht im Umfang“.
    - [ ] Jede Zielplattform hat ein Test-Gerät (mobil mit Touch und passender Engine) und Artboards. Legt der Stack eine UI-Bibliothek fest, ist jedes Bedienelement einer ihrer Komponenten zugeordnet.
@@ -32,4 +32,4 @@ Die Spec sagt *wie, in welcher Reihenfolge und woran „fertig“ erkennbar ist*
    - [ ] Was nur der Nutzer liefern kann (Secrets, Tokens, Zugänge), steht unter „Vorab vom Nutzer“.
    - [ ] Aufgaben, die dieselbe Datei oder Schnittstelle berühren, passen zusammen (was die eine erzeugt, nutzt die andere so).
    - [ ] Bei „groß“: Jede Aufgabendatei ist ohne Spec lösbar.
-8. **Abschluss:** Pfad, Größe/Modus, Anzahl Aufgaben, wichtigste Builder-Entscheidungen und „Vorab vom Nutzer“ nennen. Empfehlen: Spec reviewen, dann in einer neuen Session `/stefan:implement-spec docs/specs/NNNN-<slug>.md`.
+8. **Abschluss:** Pfad, Größe/Modus, Anzahl Aufgaben, wichtigste Builder-Entscheidungen und „Vorab vom Nutzer“ nennen. Empfehlen: Spec reviewen, dann in einer neuen Session `/stefan:implement docs/specs/NNNN-<slug>.md`.
