@@ -11,6 +11,8 @@ export type Stats = {
   timeMs: Record<Group, number>
   agents: Record<string, { group: Group; usd: number }>
   limits: Record<string, LimitShare>
+  turnStartUsd: number
+  turnCosts: number[]
 }
 
 declare module 'claude-code' {

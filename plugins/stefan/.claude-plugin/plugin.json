@@ -1,6 +1,6 @@
 {
   "name": "stefan",
   "description": "Stefans persönliche Skills",
-  "version": "1.24.1",
+  "version": "1.24.2",
   "types": "./types/index.d.ts"
 }

@@ -9,16 +9,18 @@ import {
   costs,
   duration,
   empty,
+  endTurn,
   groupOf,
   limitName,
   percent,
+  spark,
   tokens,
   usd,
 } from './session-stats-calc'
 
 // Change the tag when Stats changes: it declines what an older version stored.
 const stats = atom({ plugin: 'stefan', key: 'stats' } as const, empty(0), {
-  shape: 'stats-1',
+  shape: 'stats-2',
 })
 
 const COMMAND = 'stefan:session-stats'
@@ -71,9 +73,10 @@ export const register: Register = on => {
     if (e.agentId === undefined) {
       const usage = await $.session.usage()
       // A /clear starts the session's figures over.
-      await update($, stats, s =>
-        applyLimits(s.startedAt === usage.startedAt ? s : empty(usage.startedAt), usage.rateLimits, true),
-      )
+      await update($, stats, s => ({
+        ...applyLimits(s.startedAt === usage.startedAt ? s : empty(usage.startedAt), usage.rateLimits, true),
+        turnStartUsd: usage.cost?.usd ?? 0,
+      }))
     }
     return next(e)
   })
@@ -91,7 +94,8 @@ export const register: Register = on => {
     const isMain = e.agentId === undefined
     await update($, stats, s => {
       const group = isMain ? 'main' : (s.agents[e.agentId ?? '']?.group ?? 'other')
-      return applyLimits(addTime(s, group, e.durationMs, isMain), usage.rateLimits, false)
+      const timed = applyLimits(addTime(s, group, e.durationMs, isMain), usage.rateLimits, false)
+      return isMain ? endTurn(timed, usage.cost?.usd) : timed
     })
     return next(e)
   })
@@ -111,12 +115,55 @@ export const register: Register = on => {
       return next(e)
     }
     const { Box, Text } = $.ui.resolve(e)
-    const rows = await lines($)
+    const usage = await $.session.usage()
+    const now = await $.clock.now()
+    const total = usage.cost?.usd ?? 0
+    const cost = costs(s, total)
+    const last = s.turnCosts[s.turnCosts.length - 1] ?? 0
+    const avg = s.turns > 0 ? s.timeMs.main / s.turns : 0
+    const reuse = s.promptTokens > 0 ? (100 * s.cacheRead) / s.promptTokens : 0
+    const tiles: { key: string; label: string; value: string; extra?: string; sub: string }[] = [
+      {
+        key: 'cost',
+        label: 'Kosten (Schätzung)',
+        value: usd(total),
+        extra: spark(s.turnCosts),
+        sub: `letzter ${usd(last)} · Haupt ${usd(cost.main)}`,
+      },
+      { key: 'tokens', label: 'Tokens', value: tokens(s.tokens), sub: `${s.turns} Turns` },
+      { key: 'time', label: 'Agent-Zeit', value: duration(s.timeMs.main), sub: `Ø ${duration(avg)} / Turn` },
+      { key: 'session', label: 'Session', value: duration(now - usage.startedAt), sub: `Cache ${percent(reuse)}` },
+      ...(['code', 'review', 'other'] as Group[]).map(g => ({
+        key: g,
+        label: LABELS[g],
+        value: usd(cost[g]),
+        sub: `Zeit ${duration(s.timeMs[g])}`,
+      })),
+      ...usage.rateLimits.map(r => ({
+        key: r.kind,
+        label: `Limit ${limitName(r.kind)}`,
+        value: percent(r.percentUsed),
+        sub: `Session +${percent(s.limits[r.kind]?.share ?? 0)}`,
+      })),
+    ]
 
     return (
-      <Box flexDirection="column">
-        {rows.map(row => (
-          <Text dimColor>{row}</Text>
+      <Box flexDirection="row" flexWrap="wrap" columnGap={3} rowGap={1}>
+        {tiles.map(t => (
+          <Box key={t.key} flexDirection="column">
+            <Text size="caption" dimColor>
+              {t.label}
+            </Text>
+            <Box flexDirection="row" columnGap={1}>
+              <Text size="heading" weight="semibold" bold tabular>
+                {t.value}
+              </Text>
+              {t.extra ? <Text dimColor>{t.extra}</Text> : null}
+            </Box>
+            <Text size="caption" dimColor>
+              {t.sub}
+            </Text>
+          </Box>
         ))}
       </Box>
     )

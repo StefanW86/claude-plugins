@@ -47,12 +47,13 @@ test('Dauer wird lesbar formatiert', async () => {
 })
 
 test('Zeile zeigt Kosten und Zeiten nach Gruppe, auf jeder Oberfläche', async ($, on) => {
+  let spent = 2
   on('session.usage', () => ({
     value: {
       startedAt: 0,
       context: { window: 200_000 },
       rateLimits: [{ kind: 'five_hour', percentUsed: 40 }],
-      cost: { usd: 10 },
+      cost: { usd: spent },
     },
   }))
   on('agent.list', () => ({
@@ -63,6 +64,7 @@ test('Zeile zeigt Kosten und Zeiten nach Gruppe, auf jeder Oberfläche', async (
   on('turn.complete', () => ({ text: '' }))
 
   await $.turn.start({ text: 'los', turnId: 't1' })
+  spent = 10
   await $.turn.complete({
     answer: '', durationMs: 120_000, isAborted: false, turnId: 's1', agentId: 'a1', reason: 'answer',
   })
@@ -72,13 +74,13 @@ test('Zeile zeigt Kosten und Zeiten nach Gruppe, auf jeder Oberfläche', async (
 
   for (const surface of ['terminal', 'desktop', 'vscode', 'mobile'] as const) {
     const ui = await $.ui.mount({ ...BAND, surface })
-    expect((await ui.find({ type: 'Text', text: /^Kosten/ }))?.text).toBe(
-      'Kosten  Haupt $6.00 · Code $4.00 · Review $0.00 · Sonst. $0.00',
-    )
-    expect((await ui.find({ type: 'Text', text: /^Zeit/ }))?.text).toBe(
-      'Zeit    Turns 5m00s, davon Subagenten: Code 2m00s · Review 0s · Sonst. 0s',
-    )
-    expect((await ui.find({ type: 'Text', text: /^Limits/ }))?.text).toBe('Limits  5h 40% (Session +0%)')
+    const text = async (t: RegExp) => (await ui.find({ type: 'Text', text: t }))?.text
+    expect(await text(/^Kosten/)).toBe('Kosten (Schätzung)')
+    expect(await text(/^\$10/)).toBe('$10.00')
+    expect(await text(/^letzter/)).toBe('letzter $8.00 · Haupt $6.00')
+    expect(await text(/^Ø/)).toBe('Ø 5m00s / Turn')
+    expect(await text(/^Zeit 2m/)).toBe('Zeit 2m00s')
+    expect(await text(/^Limit/)).toBe('Limit 5h')
     await ui.unmount()
   }
 })
