@@ -262,6 +262,20 @@ class TerraformGuardTest(unittest.TestCase):
         self.write("tests/mock.tftest.json", '{"mock_provider": {"azurerm": {}}, "run": {"x": {}}}')
         self.assertIsNone(self.bash("terraform test", cwd=self.infra))
 
+    def test_terraform_test_json_duplicates_and_bom(self):
+        cases = [('{"run": {"x": {}}, "run": {"y": {"command": "plan"}}}', "ask"),
+                 ('{"run": {"x": {}, "x": {"command": "plan"}}}', "ask"),
+                 ('﻿{"run": {"x": {}}}', "ask"),
+                 ('﻿{"run": {"x": {"command": "plan"}}}', None)]
+        for text, expected in cases:
+            self.write("tests/t.tftest.json", text)
+            self.assertEqual(self.bash("terraform test", cwd=self.infra), expected, text)
+
+    def test_terraform_test_unparsable_json_asks(self):
+        for text in ('{"run": {"x": {}', '{"run": {"x": {}}, "n": ' + "1" * 5000 + "}", "[" * 100000):
+            self.write("tests/bad.tftest.json", text)
+            self.assertEqual(self.bash("terraform test", cwd=self.infra), "ask", text[:30])
+
     def test_terraform_test_skips_devices_and_fifos(self):
         self.write("tests/plan.tftest.hcl", PLAN_RUNS)
         os.symlink("/dev/zero", os.path.join(self.infra, "tests", "zero.tftest.hcl"))
