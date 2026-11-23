@@ -217,6 +217,14 @@ class OpenTasksTest(unittest.TestCase):
         self.write_spec([("T01", "todo", [])], closing="todo")
         self.assertIsNone(self.stop())
 
+    def test_branch_scheme_of_project_matches_by_number_or_slug(self):
+        self.write_spec([("T01", "todo", [])], closing="todo")
+        for branch in ("feature/x", "feature/0003-x", "bug/0003-anderer-name"):
+            git(self.repo, "switch", "-q", "-c", branch)
+            self.assertIn("T01", self.stop(), branch)
+        git(self.repo, "switch", "-q", "-c", "feature/x-y")
+        self.assertIsNone(self.stop())
+
     def test_project_dir_wins_over_cwd(self):
         self.write_spec([("T01", "todo", [])], closing="todo")
         clone = make_repo(os.path.join(self.base, "Clone"), branch="feat/0003-x")
