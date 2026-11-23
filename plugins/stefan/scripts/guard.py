@@ -165,16 +165,16 @@ def terraform_changes(seg):
 def terraform_unformatted(d):
     """Grund zum Ablehnen bzw. Nachfragen, wenn ein Commit unformatiertes Terraform enthielte, sonst None."""
     top = git_out(d, "rev-parse", "--show-toplevel")
-    listed = git_out(top, "ls-files", "--cached", "--others", "--exclude-standard", "--",
-                     "*.tf", "*.tfvars", "*.tftest.hcl") if top else None
-    files = [f for f in (listed or "").splitlines() if os.path.exists(os.path.join(top, f))]
+    listed = subprocess.run(["git", "-C", top, "ls-files", "-z", "--cached", "--others", "--exclude-standard", "--",
+                             "*.tf", "*.tfvars", "*.tftest.hcl"], capture_output=True).stdout if top else b""
+    files = [f for f in os.fsdecode(listed).split("\0") if f and os.path.exists(os.path.join(top, f))]
     if not files:
         return None
     exe = shutil.which("terraform")
     if not exe:
         return "ask", "Das Repo enthält Terraform, aber terraform fehlt: fmt vor dem Commit nicht prüfbar."
     try:  # nur von git erfasste Dateien, nicht .terraform/ oder andere ignorierte Ordner
-        r = subprocess.run([exe, "fmt", "-check", *files], cwd=top, capture_output=True, text=True, timeout=8)
+        r = subprocess.run([exe, "fmt", "-check", "--", *files], cwd=top, capture_output=True, text=True, timeout=8)
     except subprocess.TimeoutExpired:
         return "ask", "terraform fmt -check hat nicht rechtzeitig geantwortet."
     if r.returncode != 0:
