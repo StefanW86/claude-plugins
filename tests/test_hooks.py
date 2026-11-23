@@ -277,6 +277,57 @@ class TerraformGuardTest(unittest.TestCase):
         self.assertIsNone(self.bash("git add -A && git commit -m x", cwd=self.infra))
 
 
+class PowerShellGuardTest(unittest.TestCase):
+    tearDown, decision, bash, ps = GuardTest.tearDown, GuardTest.decision, GuardTest.bash, GuardTest.ps
+
+    def setUp(self):
+        GuardTest.setUp(self)
+        self.repo = make_repo(os.path.join(self.home, "dev", "Scripts"), branch="feat/x")
+
+    def write(self, rel, data):
+        path = os.path.join(self.repo, rel)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "wb") as f:
+            f.write(data if isinstance(data, bytes) else data.encode("utf-8"))
+
+    def commit(self):
+        return self.bash("git add -A && git commit -m x", cwd=self.repo)
+
+    def test_non_ascii_without_bom_denied(self):
+        for f in ("run.ps1", "mod/Tools.psm1", "mod/Tools.psd1"):
+            self.write(f, "Write-Output 'Größe'\n")
+            self.assertEqual(self.commit(), "deny", f)
+            os.remove(os.path.join(self.repo, f))
+
+    def test_requires_5_1_without_bom_denied(self):
+        self.write("run.ps1", "#Requires -Version 5.1\nWrite-Output 'Größe'\n")
+        self.assertEqual(self.commit(), "deny")
+
+    def test_bom_or_ascii_allowed(self):
+        self.write("bom.ps1", b"\xef\xbb\xbfWrite-Output 'Gr\xc3\xb6\xc3\x9fe'\n")
+        self.write("utf16.ps1", "Write-Output 'Größe'\n".encode("utf-16"))
+        self.write("ascii.ps1", "Write-Output 'Groesse'\n")
+        self.assertIsNone(self.commit())
+
+    def test_core_only_script_allowed(self):
+        self.write("a.ps1", "#Requires -Version 7.2\nWrite-Output 'Größe'\n")
+        self.write("b.ps1", "#requires -PSEdition Core\nWrite-Output 'Größe'\n")
+        self.assertIsNone(self.commit())
+
+    def test_ignored_and_deleted_scripts_not_checked(self):
+        self.write(".gitignore", "out/\n")
+        self.write("out/tmp.ps1", "Write-Output 'Größe'\n")
+        self.write("old.ps1", "Write-Output 'ok'\n")
+        git(self.repo, "add", "-A")
+        os.remove(os.path.join(self.repo, "old.ps1"))
+        self.assertIsNone(self.bash("git commit -am x", cwd=self.repo))
+
+    def test_powershell_tool_commit_checked(self):
+        self.write("run.ps1", "Write-Output 'Größe'\n")
+        git(self.repo, "add", "-A")
+        self.assertEqual(self.ps("git commit -m x", cwd=self.repo), "deny")
+
+
 class OpenTasksTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
