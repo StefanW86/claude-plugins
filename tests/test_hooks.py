@@ -221,6 +221,19 @@ class TerraformGuardTest(unittest.TestCase):
         self.write("main.tf", "ok")
         self.assertIsNone(self.bash("git add -A && git commit -m x", cwd=self.infra))
 
+    def test_commit_checks_unusual_file_names(self):
+        self.with_terraform()
+        self.write("mäin.tf", "UNFORMATTED")
+        self.assertEqual(self.bash("git add -A && git commit -m x", cwd=self.infra), "deny")
+
+    def test_commit_with_deleted_terraform_file_allowed(self):
+        self.with_terraform()
+        self.write("main.tf", "ok")
+        self.write("old.tf", "ok")
+        git(self.infra, "add", "-A")
+        os.remove(os.path.join(self.infra, "old.tf"))
+        self.assertIsNone(self.bash("git commit -am x", cwd=self.infra))
+
     def test_commit_with_terraform_but_no_binary_asks(self):
         self.write("main.tf", "ok")
         self.assertEqual(self.bash("git commit -m x", cwd=self.infra), "ask")
