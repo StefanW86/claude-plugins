@@ -1,6 +1,6 @@
 ---
 name: clean-code
-description: Regeln für Code und Tests – TDD-Zyklus für Spec-Aufgaben und Bugfixes, Testqualität, Einfachheit, sparsames Arbeiten. Verwenden beim Schreiben, Refaktorieren oder Reviewen von Code oder Tests.
+description: Regeln für Code und Tests – TDD-Zyklus für Spec-Aufgaben und Bugfixes, Testqualität, Einfachheit, sparsames Arbeiten, dazu Terraform und PowerShell (Skripte, Module, Runbooks). Verwenden beim Schreiben, Refaktorieren oder Reviewen von Code oder Tests.
 ---
 
 # Code und Tests
@@ -33,6 +33,7 @@ Commit-Messages ohne Co-Authored-By-Zeile (der Schutz-Hook lehnt sie ab).
 - Je Modul bzw. Klasse eine eigene Datei.
 - Bewusste Abweichung von einer Regel kurz begründen.
 - Terraform (`*.tf` im Projekt): zusätzlich [references/terraform.md](references/terraform.md) lesen.
+- PowerShell (`*.ps1`, `*.psm1`, `*.psd1` im Projekt oder in der Aufgabe): zusätzlich [references/powershell.md](references/powershell.md) lesen.
 
 ## UI (bedienbar wie für einen Nutzer)
 - Legt der Tech-Stack eine UI-Komponentenbibliothek fest, kommt jedes Bedienelement aus ihr (z. B. deren Datumsauswahl statt eines nativen Datumsfelds); Eigenes nur für das, was sie nicht bietet. Jeder Zustand passt zum Theme, auch geöffnete Menüs, Popover und Auswahlfelder im Dunkelmodus.

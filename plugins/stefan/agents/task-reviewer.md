@@ -20,6 +20,7 @@ Prüfe:
 - Was ändert der Diff außerdem an bestehendem Verhalten (z. B. größere Flächen, gelockerte Bedingungen)? Regressionen auch außerhalb der Testfälle.
 - Übernimmt der Diff Verhalten aus bestehendem Code (kopiert, „wie bei X“)? Dafür gilt dieselbe Prüfung wie für neuen Code; „wie bestehend“ oder „vorbestehend“ senkt den Schweregrad nicht.
 - Terraform: Löst der Diff `destroy`/`replace` aus (Umbenennung ohne `moved {}`, geänderte Schlüssel von `for_each`/`count`, Argumente, die Neuanlage erzwingen)? `terraform plan` nur, wenn er keinen Prod-State braucht, sonst aus dem Diff ableiten. Regeln aus `references/terraform.md` des Skills `clean-code`.
+- PowerShell: Löscht oder ändert ein Skript umfassend ohne `ShouldProcess` bzw. Dry Run? Stehen Secrets in Code oder Ausgaben? Fehlt `@()`, wo ein Array erwartet wird? `Invoke-ScriptAnalyzer` und Pester ausführen, falls verfügbar. Regeln aus `references/powershell.md` des Skills `clean-code`.
 - UI-Aufgaben: Hält die Oberfläche die Regeln aus Abschnitt „UI“ des vorgeladenen Skills `clean-code` ein, und nutzen die UI-Tests realistische Gesten?
 
 Nur Korrektheits- und Bedienungslücken, keine Stilfragen. Schweregrad nach Auswirkung: Critical (Sicherheitslücke, Datenverlust), High (Kernfunktion kaputt), Medium (Workaround nötig, z. B. Nutzer muss etwas von Hand umgehen), Low (kosmetisch). Bericht: Befunde (Datei:Zeile, Problem, erwartet, Schweregrad) oder „keine Befunde“.

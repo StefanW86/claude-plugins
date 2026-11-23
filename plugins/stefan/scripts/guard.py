@@ -10,6 +10,8 @@
 - Commit mit Co-Authored-By-Trailer verboten (Vorgabe des Nutzers).
 - Terraform: Commit mit State, Plan, `.terraform/`, Lock-Datei oder `*.tfvars` verboten; Commit nur, wenn `terraform fmt -check` für die von git erfassten Terraform-Dateien durchläuft; Befehle, die
   Infrastruktur oder State ändern (apply, destroy, import, state rm/mv …): Rückfrage.
+- PowerShell: Commit verboten, wenn ein Skript (.ps1/.psm1/.psd1) Nicht-ASCII ohne BOM enthält und nicht per
+  `#Requires -Version 6+` bzw. `-PSEdition Core` auf PowerShell 7 beschränkt ist (5.1 liest es sonst als ANSI).
 Gilt für Bash (Linux, Git Bash unter Windows) und PowerShell.
 Textabgleich ist ein Sicherheitsnetz, keine Sicherheitsgrenze.
 """
@@ -41,6 +43,9 @@ TF_CHANGE = {"apply", "destroy", "import", "taint", "untaint", "force-unlock"}
 TF_STATE_READ = {"list", "show", "pull", "identities"}
 TF_FORBIDDEN = ["**/*.tfstate", "**/*.tfstate.*", "**/.terraform/**", "**/.terraform.lock.hcl", "**/*.tfplan",
                 "**/*.tfvars", "**/*.tfvars.json"]
+PS_FILES = ["**/*.ps1", "**/*.psm1", "**/*.psd1"]
+PS_BOMS = (b"\xef\xbb\xbf", b"\xff\xfe", b"\xfe\xff")
+PS_CORE_ONLY = re.compile(rb"^[ \t]*#requires\b[^\n]*?-(?:version[ \t]+([0-9]+)|psedition[ \t]+core)", re.I | re.M)
 HEREDOC = re.compile(r"(<<-?\s*(['\"]?)(\w+)\2)([^\n]*)\n.*?^[ \t]*\3[ \t]*$", re.S | re.M)
 
 
@@ -203,6 +208,31 @@ def terraform_commit_problem(d):
     return None
 
 
+def powershell_commit_problem(d):
+    """Grund, wenn ein Commit PowerShell-Skripte enthielte, die Windows PowerShell 5.1 falsch dekodiert, sonst None."""
+    top = git_out(d, "rev-parse", "--show-toplevel")
+    if not top:
+        return None
+    bad = []
+    for f in repo_files(top, *PS_FILES):
+        try:
+            with open(os.path.join(top, f), "rb") as fh:
+                data = fh.read()
+        except OSError:  # gelöscht oder nicht lesbar
+            continue
+        if data.isascii() or data.startswith(PS_BOMS):
+            continue
+        m = PS_CORE_ONLY.search(data)
+        if m and (m.group(1) is None or int(m.group(1)) >= 6):
+            continue
+        bad.append(f)
+    if bad:
+        return (f"PowerShell-Skripte mit Nicht-ASCII ohne BOM: {', '.join(bad[:5])}. Windows PowerShell 5.1 liest "
+                "sie als ANSI. Als UTF-8 mit BOM speichern, auf ASCII umstellen oder mit `#Requires -Version 7.2` "
+                "auf PowerShell 7 beschränken.")
+    return None
+
+
 def check_shell(command, cwd, powershell=False):
     if powershell:  # Backslash ist dort Pfadtrenner, kein Escape
         command = command.replace("\\", "/")
@@ -235,6 +265,9 @@ def check_shell(command, cwd, powershell=False):
                 if fmt and fmt[0] == "deny":
                     decide(*fmt)
                 ask = ask or (fmt and fmt[1])
+                ps = powershell_commit_problem(gd)
+                if ps:
+                    decide("deny", ps)
             continue
         if cmd == "terraform" and terraform_changes(seg) and not ask:
             ask = "terraform ändert Infrastruktur bzw. State: nur nach geprüftem Plan und nie gegen Prod ohne Freigabe."
