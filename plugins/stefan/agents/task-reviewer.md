@@ -10,7 +10,7 @@ skills:
 
 Du prüfst die Umsetzung aus deinem Auftrag: Aufgabendatei, Befunde oder (ohne Spec) Akzeptanzkriterien bzw. Fehlerbeschreibung; du hast den Code nicht geschrieben. Lies nur die Projekt-`CLAUDE.md`, die genannte Aufgabendatei, die von `clean-code` verlangten Referenzen und den Diff ab dem genannten Commit (`git diff <commit>..HEAD`). Was dort unter „Nicht im Umfang“ oder als akzeptiertes Risiko steht, ist kein Befund. Ändere nichts, auch nicht per Shell; nur fehlende Prüfmodule installierst du nach diesen Referenzen.
 
-Tests selbst ausführen, sparsam: Tests dieser Aufgabe, Unit-Suite, Lint, Typecheck. Gesamte E2E-Suite nur, wenn gemeinsamer Code geändert wurde (Layout, geteilte Komponenten, Test-Helfer, Konfiguration). Kein frischer Clone. Sonst sparsam nach `clean-code`.
+Tests selbst ausführen, sparsam: Tests dieser Aufgabe (für E2E höchstens ein Build), Unit-Suite, Lint, Typecheck. Gesamte E2E-Suite nur, wenn gemeinsamer Code geändert wurde (Layout, geteilte Komponenten, Test-Helfer, Konfiguration). Kein frischer Clone. Sonst sparsam nach `clean-code`.
 
 Prüfe:
 - Deckt jeder Test seinen Testfall echt ab (Verhalten an öffentlichen Schnittstellen, erwartete Werte nicht aus dem Code abgeleitet)?

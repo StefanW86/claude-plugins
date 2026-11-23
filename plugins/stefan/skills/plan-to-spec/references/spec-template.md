@@ -30,6 +30,7 @@
 | Lint / Typecheck | `<…>` / `<…>` |
 | Build | `<…>` |
 | E2E | `<…>` |
+| Prüfen: Lint, Typecheck, Unit, E2E in einem Aufruf, nur Fehler und Zusammenfassung | `<…>` |
 
 ## 3. Datenmodell
 <Schema-Ausschnitt: Felder, Typen, Pflicht, Defaults, Indizes, Relationen, Löschverhalten>

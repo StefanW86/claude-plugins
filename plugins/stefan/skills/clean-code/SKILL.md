@@ -16,7 +16,8 @@ Commit-Messages ohne Co-Authored-By-Zeile (der Schutz-Hook lehnt sie ab).
 - Mehrere Lese- bzw. Edit-Schritte und die anschließende Prüfung in einem Shell-Aufruf bündeln; unabhängige Aufrufe (Skill laden, Dateien lesen, Status prüfen) in einer Antwort parallel stellen.
 - Gezielt lesen (`grep -n`, `sed -n a,bp` bzw. `Select-String`, Read mit offset/limit) statt ganzer Dateien; Gelesenes und Screenshots nicht erneut lesen.
 - Ausgaben kürzen, Fehlermeldungen aber vollständig behalten, damit kein zweiter Lauf nur zum Lesen nötig ist: z. B. `--reporter=line 2>&1 | tail -40` statt `tail -3` (PowerShell: `Select-Object -Last 40`).
-- Prüfstufen: während der Arbeit nur betroffene Tests; gesamte Suite, Lint, Typecheck und E2E einmal am Ende. Schlägt etwas fehl: nur die fehlgeschlagenen Tests bis grün, dann die Suite ein letztes Mal. `--repeat-each` nur bei konkretem Verdacht auf instabile Tests. Frischer Clone nur im Abschluss.
+- Prüfstufen: während der Arbeit nur betroffene Tests; gesamte Suite, Lint, Typecheck und E2E einmal am Ende, in einem Aufruf (Prüfskript des Projekts, sonst mit `&&` verkettet). Schlägt etwas fehl: nur die fehlgeschlagenen Tests bis grün (`--last-failed` bzw. Dateifilter), dann die Suite ein letztes Mal.
+- E2E-Server (Weg aus Projekt-`CLAUDE.md`): neu bauen und neu starten nur, wenn sich Produktivcode seit dem letzten Build geändert hat, nicht nach reinen Teständerungen; mehrere Korrekturen sammeln, dann einmal bauen. Einen selbst gestarteten Server am Ende per PID beenden. `--repeat-each` nur bei konkretem Verdacht auf instabile Tests. Frischer Clone nur im Abschluss.
 - Keine Testläufe neben einer noch laufenden Suite: die Last verfälscht Laufzeiten und Timeouts. Hintergrundläufe erst abwarten.
 
 ## Tests
