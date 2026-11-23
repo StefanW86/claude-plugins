@@ -14,7 +14,7 @@ def run_script(name, stdin, env):
     if not isinstance(stdin, str):
         stdin = json.dumps(stdin)
     return subprocess.run(["python3", os.path.join(SCRIPTS, name)], input=stdin,
-                          capture_output=True, text=True, env=env)
+                          capture_output=True, text=True, env=env, timeout=10)  # Timeout wie in hooks.json
 
 
 def git(cwd, *args):
@@ -249,6 +249,32 @@ class TerraformGuardTest(unittest.TestCase):
         self.assertIsNone(self.bash("terraform test -filter=tests/plan.tftest.hcl", cwd=self.infra))
         self.assertEqual(self.bash("terraform test -filter tests/apply.tftest.hcl", cwd=self.infra), "ask")
         self.assertIsNone(self.bash("terraform test -test-directory=integration", cwd=self.infra))
+
+    def test_terraform_test_counts_command_only_in_run_block_itself(self):
+        self.write("tests/nested.tftest.hcl", 'run "x" {\n  variables {\n    command = plan\n  }\n}\n')
+        self.assertEqual(self.bash("terraform test", cwd=self.infra), "ask")
+
+    def test_terraform_test_checks_json_files(self):
+        self.write("tests/apply.tftest.json", '{"run": {"create": {}}}')
+        self.assertEqual(self.bash("terraform test", cwd=self.infra), "ask")
+        os.remove(os.path.join(self.infra, "tests", "apply.tftest.json"))
+        self.write("tests/plan.tftest.json", '{"run": [{"a": {"command": "plan"}}, {"b": [{"command": "plan"}]}]}')
+        self.write("tests/mock.tftest.json", '{"mock_provider": {"azurerm": {}}, "run": {"x": {}}}')
+        self.assertIsNone(self.bash("terraform test", cwd=self.infra))
+
+    def test_terraform_test_skips_devices_and_fifos(self):
+        self.write("tests/plan.tftest.hcl", PLAN_RUNS)
+        os.symlink("/dev/zero", os.path.join(self.infra, "tests", "zero.tftest.hcl"))
+        os.mkfifo(os.path.join(self.infra, "tests", "fifo.tftest.hcl"))
+        self.assertIsNone(self.bash("terraform test", cwd=self.infra))
+
+    def test_terraform_test_scan_is_linear(self):
+        self.write("tests/nested.tftest.hcl", 'run "a" {\n  command = plan\n' * 20000)
+        self.assertIsNone(self.bash("terraform test", cwd=self.infra))
+
+    def test_terraform_test_with_huge_file_asks(self):
+        self.write("tests/huge.tftest.hcl", PLAN_RUNS + "#" * (1 << 20))
+        self.assertEqual(self.bash("terraform test", cwd=self.infra), "ask")
 
     def test_commit_with_unformatted_terraform_denied(self):
         self.with_terraform()
