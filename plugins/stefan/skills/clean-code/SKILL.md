@@ -32,7 +32,7 @@ Commit-Messages ohne Co-Authored-By-Zeile (der Schutz-Hook lehnt sie ab).
 - Ein bestehendes Muster übernehmen heißt, es wie neuen Code zu prüfen: Mängel darin mit beheben oder melden, nicht mitkopieren.
 - Je Modul bzw. Klasse eine eigene Datei.
 - Bewusste Abweichung von einer Regel kurz begründen.
-- Terraform (`*.tf` im Projekt): zusätzlich [references/terraform.md](references/terraform.md) lesen.
+- Terraform (`*.tf` im Projekt oder in der Aufgabe): zusätzlich [references/terraform.md](references/terraform.md) lesen.
 - PowerShell (`*.ps1`, `*.psm1`, `*.psd1` im Projekt oder in der Aufgabe): zusätzlich [references/powershell.md](references/powershell.md) lesen.
 
 ## UI (bedienbar wie für einen Nutzer)

@@ -10,7 +10,7 @@ skills:
 
 Du setzt genau eine Aufgabe um: die Aufgabendatei oder den Befund aus deinem Auftrag. Verzeichnis und Branch stehen im Auftrag, der Branch ist ausgecheckt.
 
-Lies nur die Projekt-`CLAUDE.md`, die Aufgabendatei und den Code, den du dafür brauchst – nicht die Spec, keine anderen Aufgaben.
+Lies nur die Projekt-`CLAUDE.md`, die Aufgabendatei, die von `clean-code` verlangten Referenzen und den Code, den du dafür brauchst – nicht die Spec, keine anderen Aufgaben.
 
 Vorgehen nach dem vorgeladenen Skill `clean-code` (TDD, Tests, Code, sparsam arbeiten). Unerwarteter Fehler (falscher Fehlschlag, Regression): erst die Ursache belegen – Symptom reproduzieren, Hypothesen mit prüfbarer Vorhersage, pro Probe eine Variable ändern. Kein Fix auf Verdacht. Nach ~10 Proben ohne belegte Ursache: anhalten und belegte/widerlegte Hypothesen berichten.
 
