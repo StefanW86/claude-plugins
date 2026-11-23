@@ -9,7 +9,8 @@
   vorher im selben Befehl zählt.
 - Commit mit Co-Authored-By-Trailer verboten (Vorgabe des Nutzers).
 - Terraform: Commit mit State, Plan, `.terraform/`, Lock-Datei oder `*.tfvars` verboten; Commit nur, wenn `terraform fmt -check` für die von git erfassten Terraform-Dateien durchläuft; Befehle, die
-  Infrastruktur oder State ändern (apply, destroy, import, state rm/mv …): Rückfrage.
+  Infrastruktur oder State ändern (apply, destroy, import, state rm/mv …): Rückfrage, ebenso `terraform test` mit
+  run-Blöcken ohne `command = plan` in Testdateien ohne `mock_provider`.
 - PowerShell: Commit verboten, wenn ein Skript (.ps1/.psm1/.psd1) Nicht-ASCII ohne BOM enthält und nicht per
   `#Requires -Version 6+` bzw. `-PSEdition Core` auf PowerShell 7 beschränkt ist (5.1 liest es sonst als ANSI).
 Gilt für Bash (Linux, Git Bash unter Windows) und PowerShell.
@@ -43,6 +44,9 @@ TF_CHANGE = {"apply", "destroy", "import", "taint", "untaint", "force-unlock"}
 TF_STATE_READ = {"list", "show", "pull", "identities"}
 TF_FORBIDDEN = ["**/*.tfstate", "**/*.tfstate.*", "**/.terraform/**", "**/.terraform.lock.hcl", "**/*.tfplan",
                 "**/*.tfvars", "**/*.tfvars.json"]
+# Zeichenketten (Klammern darin zählen nicht) und Kommentare in HCL
+TF_TEST_NOISE = re.compile(r'"(?:\\.|[^"\\\n])*"|/\*.*?\*/|(?:#|//)[^\n]*', re.S)
+TF_RUN = re.compile(r'\brun(?:\s*""|\s+[A-Za-z_][\w-]*)\s*\{')
 PS_FILES = ["**/*.ps1", "**/*.psm1", "**/*.psd1"]
 PS_BOMS = (b"\xef\xbb\xbf", b"\xff\xfe", b"\xfe\xff")
 PS_CORE_ONLY = re.compile(rb"^[ \t]*#requires\b[^\n]*?-(?:version[ \t]+([0-9]+)|psedition[ \t]+core)", re.I | re.M)
@@ -169,6 +173,62 @@ def terraform_changes(seg):
             or (sub == "workspace" and rest[:1] == ["delete"]))
 
 
+def flag_values(args, name):
+    """Werte einer Option als `name=wert` oder `name wert`."""
+    vals = []
+    for i, a in enumerate(args):
+        if a.startswith(name + "="):
+            vals.append(a[len(name) + 1:])
+        elif a == name and i + 1 < len(args):
+            vals.append(args[i + 1])
+    return vals
+
+
+def runs_real_infrastructure(text):
+    """True, wenn eine Terraform-Testdatei ohne mock_provider einen run-Block ohne `command = plan` hat."""
+    code = TF_TEST_NOISE.sub(lambda m: '""' if m.group(0).startswith('"') else "", text)
+    if re.search(r"\bmock_provider\b", code):
+        return False
+    for m in TF_RUN.finditer(code):
+        depth, end = 0, len(code)
+        for i in range(m.end() - 1, len(code)):
+            depth += {"{": 1, "}": -1}.get(code[i], 0)
+            if depth == 0:
+                end = i
+                break
+        if not re.search(r"\bcommand\s*=\s*plan\b", code[m.end():end]):
+            return True
+    return False
+
+
+def terraform_test_problem(seg, cwd):
+    """Grund für eine Rückfrage, wenn `terraform test` Testdateien ausführt, die echte Infrastruktur anlegen."""
+    args = seg[1:]
+    if [a for a in args if not a.startswith("-")][:1] != ["test"]:
+        return None
+    base = resolve(flag_values(args, "-chdir")[-1], cwd) if flag_values(args, "-chdir") else cwd
+    files = flag_values(args, "-filter")
+    if not files:
+        for sub in ("", (flag_values(args, "-test-directory") or ["tests"])[-1]):
+            try:
+                files += [os.path.join(sub, f) for f in sorted(os.listdir(os.path.join(base, sub)))
+                          if f.endswith(".tftest.hcl")]
+            except OSError:  # Ordner fehlt
+                pass
+    bad = []
+    for f in files:
+        try:
+            with open(os.path.join(base, f), encoding="utf-8", errors="replace") as fh:
+                if runs_real_infrastructure(fh.read()):
+                    bad.append(f)
+        except OSError:  # Ordner, gelöscht oder nicht lesbar
+            continue
+    if bad:
+        return (f"terraform test legt echte Infrastruktur an: run-Blöcke ohne `command = plan` und ohne "
+                f"`mock_provider` in {', '.join(bad[:5])}. Nur mit Freigabe, nie gegen Prod.")
+    return None
+
+
 def repo_files(top, *patterns):
     """Dateien im Index oder ungetrackt und nicht ignoriert, die auf ein Glob-Muster passen."""
     out = subprocess.run(["git", "-C", top, "ls-files", "-z", "--cached", "--others", "--exclude-standard", "--",
@@ -269,8 +329,9 @@ def check_shell(command, cwd, powershell=False):
                 if ps:
                     decide("deny", ps)
             continue
-        if cmd == "terraform" and terraform_changes(seg) and not ask:
-            ask = "terraform ändert Infrastruktur bzw. State: nur nach geprüftem Plan und nie gegen Prod ohne Freigabe."
+        if cmd == "terraform" and not ask:
+            ask = ("terraform ändert Infrastruktur bzw. State: nur nach geprüftem Plan und nie gegen Prod ohne Freigabe."
+                   if terraform_changes(seg) else terraform_test_problem(seg, d))
         targets = [seg[i + 1] for i in range(len(seg) - 1) if seg[i] in REDIRECTS]
         if cmd in WRITE_CMDS or (cmd == "sed" and any(t.startswith("-i") for t in seg[1:])):
             targets += [t for t in seg[1:] if not t.startswith("-")]
