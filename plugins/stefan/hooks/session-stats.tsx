@@ -28,12 +28,15 @@ const COMMAND = 'stefan:session-stats'
 const LABELS: Record<Group, string> = { main: 'Haupt', code: 'Code', review: 'Review', other: 'Sonst.' }
 
 // Notes each subagent the engine still lists: its group and what it cost so far.
+// Called after every subagent step: at its turn's end the engine may have
+// dropped it already. The highest figure stands, a cost never shrinks.
 const recordAgents = async ($: EngineInterface) => {
   const agents = await $.agent.list()
   await update($, stats, s => {
     const known = { ...s.agents }
     for (const a of agents) {
-      known[a.id] = { group: groupOf(a.type), usd: a.cost?.usd ?? known[a.id]?.usd ?? 0 }
+      const usd = Math.max(a.cost?.usd ?? 0, known[a.id]?.usd ?? 0)
+      known[a.id] = { group: groupOf(a.type), usd }
     }
     return { ...s, agents: known }
   })
@@ -85,6 +88,7 @@ export const register: Register = on => {
     const step = yield* next(e)
     const usage = step.usage
     if (usage) await update($, stats, s => addUsage(s, usage))
+    if (e.agentId !== undefined) await recordAgents($)
     return step
   })
 
