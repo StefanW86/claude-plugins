@@ -261,6 +261,13 @@ class TerraformGuardTest(unittest.TestCase):
         self.env["PATH"] = f"{self.bin}:{self.infra}"
         self.assertEqual(self.bash("git commit -m x", cwd=self.infra), "ask")
 
+    def test_terraform_from_path_below_working_dir_runs(self):
+        self.write("main.tf", "UNFORMATTED")
+        self.write("tools/terraform", FAKE_TERRAFORM)
+        os.chmod(os.path.join(self.infra, "tools", "terraform"), 0o755)
+        self.env["PATH"] = f"{self.bin}:{os.path.join(self.infra, 'tools')}"
+        self.assertEqual(self.bash("git commit -m x", cwd=self.infra), "deny")
+
     def test_commit_with_terraform_but_no_binary_asks(self):
         self.write("main.tf", "ok")
         self.assertEqual(self.bash("git commit -m x", cwd=self.infra), "ask")
