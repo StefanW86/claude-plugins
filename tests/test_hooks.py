@@ -157,6 +157,7 @@ class GuardTest(unittest.TestCase):
 
 FAKE_TERRAFORM = """#!/bin/sh
 # Ersatz für terraform fmt -check: unformatiert ist, was UNFORMATTED enthält
+PATH=/usr/bin:/bin
 [ "$1" = fmt ] || exit 1
 case " $* " in *" -recursive "*) files=$(find . -name '*.tf') ;; *) files=$(ls ./*.tf 2>/dev/null) ;; esac
 [ -n "$files" ] && grep -qs UNFORMATTED $files && exit 3

@@ -1,5 +1,5 @@
 {
-  "description": "Schutzregeln: Prozesse nicht nach Namen beenden, Prod-Checkouts nur per Deploy, nie direkt auf main",
+  "description": "Schutzregeln: Prozesse nicht nach Namen beenden, Prod-Checkouts nur per Deploy, nie direkt auf main, terraform fmt vor Commit, Rückfrage bei terraform apply/destroy",
   "hooks": {
     "PreToolUse": [
       {

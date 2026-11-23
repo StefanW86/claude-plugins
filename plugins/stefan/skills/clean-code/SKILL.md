@@ -32,6 +32,7 @@ Commit-Messages ohne Co-Authored-By-Zeile (der Schutz-Hook lehnt sie ab).
 - Ein bestehendes Muster übernehmen heißt, es wie neuen Code zu prüfen: Mängel darin mit beheben oder melden, nicht mitkopieren.
 - Je Modul bzw. Klasse eine eigene Datei.
 - Bewusste Abweichung von einer Regel kurz begründen.
+- Terraform (`*.tf` im Projekt): zusätzlich [references/terraform.md](references/terraform.md) lesen.
 
 ## UI (bedienbar wie für einen Nutzer)
 - Legt der Tech-Stack eine UI-Komponentenbibliothek fest, kommt jedes Bedienelement aus ihr (z. B. deren Datumsauswahl statt eines nativen Datumsfelds); Eigenes nur für das, was sie nicht bietet. Jeder Zustand passt zum Theme, auch geöffnete Menüs, Popover und Auswahlfelder im Dunkelmodus.

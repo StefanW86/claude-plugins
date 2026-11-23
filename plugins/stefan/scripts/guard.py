@@ -8,6 +8,8 @@
 - Commit auf main/master verboten (außer erstem Commit und Merge-/Squash-Abschluss); ein Branchwechsel
   vorher im selben Befehl zählt.
 - Commit mit Co-Authored-By-Trailer verboten (Vorgabe des Nutzers).
+- Terraform: Commit nur, wenn `terraform fmt -check -recursive` im Repo durchläuft; Befehle, die
+  Infrastruktur oder State ändern (apply, destroy, import, state rm/mv …): Rückfrage.
 Gilt für Bash (Linux, Git Bash unter Windows) und PowerShell.
 Textabgleich ist ein Sicherheitsnetz, keine Sicherheitsgrenze.
 """
@@ -15,6 +17,7 @@ import json
 import os
 import re
 import shlex
+import shutil
 import subprocess
 import sys
 
@@ -34,6 +37,8 @@ REDIRECTS = {">", ">>", "&>", "&>>", ">|"}
 SEPARATORS = {";", "&&", "||", "|", "&", "|&", ";;", "(", ")"}
 CO_AUTHOR = re.compile(r"co-authored-by\s*[:=]", re.I)
 CREATE_FLAGS = {"-b", "-B", "-c", "-C", "--create", "--force-create", "--orphan"}
+TF_CHANGE = {"apply", "destroy", "import", "taint", "untaint", "force-unlock"}
+TF_STATE_READ = {"list", "show", "pull", "identities"}
 HEREDOC = re.compile(r"(<<-?\s*(['\"]?)(\w+)\2)([^\n]*)\n.*?^[ \t]*\3[ \t]*$", re.S | re.M)
 
 
@@ -147,6 +152,30 @@ def commit_on_main(d):
     return True
 
 
+def terraform_changes(seg):
+    """True, wenn ein terraform-Aufruf Infrastruktur oder State ändert."""
+    args = [a for a in seg[1:] if not a.startswith("-")]
+    if not args:
+        return False
+    sub, rest = args[0], args[1:]
+    return (sub in TF_CHANGE or (sub == "state" and bool(rest) and rest[0] not in TF_STATE_READ)
+            or (sub == "workspace" and rest[:1] == ["delete"]))
+
+
+def terraform_unformatted(d):
+    """Grund zum Ablehnen bzw. Nachfragen, wenn ein Commit unformatiertes Terraform enthielte, sonst None."""
+    top = git_out(d, "rev-parse", "--show-toplevel")
+    if not top or not git_out(top, "ls-files", "--cached", "--others", "--exclude-standard", "--", "*.tf"):
+        return None
+    exe = shutil.which("terraform")
+    if not exe:
+        return "ask", "Das Repo enthält Terraform, aber terraform fehlt: fmt vor dem Commit nicht prüfbar."
+    r = subprocess.run([exe, "fmt", "-check", "-recursive"], cwd=top, capture_output=True, text=True)
+    if r.returncode != 0:
+        return "deny", ("Vor jedem Commit terraform fmt: im Repo-Wurzelverzeichnis `terraform fmt -recursive` "
+                        f"ausführen, Änderungen stagen, Commit wiederholen. Betroffen: {r.stdout.strip()}")
+    return None
+
 
 def check_shell(command, cwd, powershell=False):
     if powershell:  # Backslash ist dort Pfadtrenner, kein Escape
@@ -175,7 +204,14 @@ def check_shell(command, cwd, powershell=False):
             if sub == "commit" and (switched[gd] in MAIN if gd in switched else commit_on_main(gd)):
                 decide("deny", "Nie direkt auf main committen: erst einen Branch nach dem Schema des Projekts anlegen "
                                "(sonst feat/… bzw. fix/…), die Änderungen wandern mit.")
+            if sub == "commit":
+                fmt = terraform_unformatted(gd)
+                if fmt and fmt[0] == "deny":
+                    decide(*fmt)
+                ask = ask or (fmt and fmt[1])
             continue
+        if cmd == "terraform" and terraform_changes(seg) and not ask:
+            ask = "terraform ändert Infrastruktur bzw. State: nur nach geprüftem Plan und nie gegen Prod ohne Freigabe."
         targets = [seg[i + 1] for i in range(len(seg) - 1) if seg[i] in REDIRECTS]
         if cmd in WRITE_CMDS or (cmd == "sed" and any(t.startswith("-i") for t in seg[1:])):
             targets += [t for t in seg[1:] if not t.startswith("-")]
