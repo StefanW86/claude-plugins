@@ -234,6 +234,33 @@ class TerraformGuardTest(unittest.TestCase):
         os.remove(os.path.join(self.infra, "old.tf"))
         self.assertIsNone(self.bash("git commit -am x", cwd=self.infra))
 
+    def test_commit_with_terraform_state_plan_or_tfvars_denied(self):
+        for f in ("terraform.tfstate", "env/terraform.tfstate.backup", ".terraform/providers/p",
+                  ".terraform.lock.hcl", "infra/.terraform.lock.hcl", "prod.tfplan", "prod.tfvars",
+                  "env/secrets.auto.tfvars.json"):
+            self.write(f, "x")
+            git(self.infra, "add", "-f", f)
+            self.assertEqual(self.bash("git commit -m x", cwd=self.infra), "deny", f)
+            git(self.infra, "rm", "-q", "-r", "--cached", f)
+
+    def test_commit_with_untracked_tfvars_denied(self):
+        self.write("prod.tfvars", "x")
+        self.assertEqual(self.bash("git add -A && git commit -m x", cwd=self.infra), "deny")
+
+    def test_commit_with_ignored_state_and_tfvars_example_allowed(self):
+        self.write(".gitignore", "*.tfstate\n*.tfvars\n")
+        self.write("terraform.tfstate", "x")
+        self.write("prod.tfvars", "x")
+        self.write("prod.tfvars.example", "x")
+        self.assertIsNone(self.bash("git add -A && git commit -m x", cwd=self.infra))
+
+    def test_terraform_binary_inside_repo_not_run(self):
+        self.write("main.tf", "ok")
+        self.write("terraform", FAKE_TERRAFORM)
+        os.chmod(os.path.join(self.infra, "terraform"), 0o755)
+        self.env["PATH"] = f"{self.bin}:{self.infra}"
+        self.assertEqual(self.bash("git commit -m x", cwd=self.infra), "ask")
+
     def test_commit_with_terraform_but_no_binary_asks(self):
         self.write("main.tf", "ok")
         self.assertEqual(self.bash("git commit -m x", cwd=self.infra), "ask")
