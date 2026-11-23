@@ -166,6 +166,29 @@ files=$(for a in "$@"; do case "$a" in -*) ;; *) echo "$a" ;; esac; done)
 exit 0
 """
 
+# run-Block ohne command = plan (nur in Kommentar und Zeichenkette): legt echte Infrastruktur an
+APPLY_RUN = """run "create" {
+  # command = plan
+  assert {
+    condition     = output.name == "command = plan"
+    error_message = "falscher Name"
+  }
+}
+"""
+PLAN_RUNS = """run "plan" {
+  command = plan
+  variables {
+    name = "x"
+  }
+}
+
+run "short" { command = plan }
+"""
+MOCKED = """mock_provider "azurerm" {}
+
+run "apply_with_mock" {}
+"""
+
 
 class TerraformGuardTest(unittest.TestCase):
     tearDown, decision, bash, ps = GuardTest.tearDown, GuardTest.decision, GuardTest.bash, GuardTest.ps
@@ -202,6 +225,30 @@ class TerraformGuardTest(unittest.TestCase):
         for c in ("terraform init -backend=false", "terraform plan", "terraform validate", "terraform fmt -recursive",
                   "terraform test", "terraform state list", "terraform show", "echo 'terraform apply'"):
             self.assertIsNone(self.bash(c), c)
+
+    def test_terraform_test_with_real_infrastructure_asks(self):
+        self.write("tests/main.tftest.hcl", APPLY_RUN)
+        self.assertEqual(self.bash("terraform test", cwd=self.infra), "ask")
+        self.assertEqual(self.bash("terraform -chdir=Infra test", cwd=os.path.dirname(self.infra)), "ask")
+        self.assertEqual(self.ps("terraform.exe test", cwd=self.infra), "ask")
+
+    def test_terraform_test_checks_each_run_block(self):
+        self.write("main.tftest.hcl", 'run "plan" { command = plan }\n\nrun "apply" {\n  command = apply\n}\n')
+        self.assertEqual(self.bash("terraform test", cwd=self.infra), "ask")
+
+    def test_terraform_test_with_plan_or_mock_allowed(self):
+        self.write("tests/plan.tftest.hcl", PLAN_RUNS)
+        self.write("tests/mock.tftest.hcl", MOCKED)
+        os.makedirs(os.path.join(self.infra, "tests", "ordner.tftest.hcl"))
+        self.assertIsNone(self.bash("terraform test", cwd=self.infra))
+
+    def test_terraform_test_honours_filter_and_test_directory(self):
+        self.write("tests/plan.tftest.hcl", PLAN_RUNS)
+        self.write("tests/apply.tftest.hcl", APPLY_RUN)
+        self.write("integration/plan.tftest.hcl", PLAN_RUNS)
+        self.assertIsNone(self.bash("terraform test -filter=tests/plan.tftest.hcl", cwd=self.infra))
+        self.assertEqual(self.bash("terraform test -filter tests/apply.tftest.hcl", cwd=self.infra), "ask")
+        self.assertIsNone(self.bash("terraform test -test-directory=integration", cwd=self.infra))
 
     def test_commit_with_unformatted_terraform_denied(self):
         self.with_terraform()
