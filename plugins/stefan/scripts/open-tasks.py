@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""Stop-Hook von implement: schickt Claude zurück an die Arbeit, solange auf dem Branch
-feat/NNNN-… die Spec NNNN In Progress ist und bearbeitbare Aufgaben oder der Abschluss offen sind.
+"""Stop-Hook von implement: schickt Claude zurück an die Arbeit, solange auf dem Branch einer Spec
+diese In Progress ist und bearbeitbare Aufgaben oder der Abschluss offen sind. Branch einer Spec
+NNNN-<slug>: letzter Pfadteil ist <slug> oder beginnt mit NNNN- (feat/0003-x, feature/x, bug/0003-y).
 blocked heißt: wartet auf den Nutzer, ebenso alles, was davon abhängt. Der Hinweis kommt als
 additionalContext: Claude arbeitet weiter, ohne dass die Oberfläche einen Hook-Fehler meldet.
 """
@@ -17,13 +18,22 @@ def git(cwd, *args):
     return r.stdout.strip() if r.returncode == 0 else ""
 
 
-def find_repo(cwd):
-    """Projektverzeichnis vor cwd, damit z. B. ein frischer Clone im Abschluss nicht zählt."""
-    for d in (os.environ.get("CLAUDE_PROJECT_DIR"), cwd):
-        m = re.match(r"feat/(\d{4})-", git(d, "branch", "--show-current")) if d else None
-        if m:
-            return git(d, "rev-parse", "--show-toplevel"), m.group(1)
-    return None, None
+def specs_on_branch(cwd):
+    """tasks.json-Dateien der Specs, zu denen der Branch gehört. Projektverzeichnis vor cwd,
+    damit z. B. ein frischer Clone im Abschluss nicht zählt."""
+    for d in filter(None, (os.environ.get("CLAUDE_PROJECT_DIR"), cwd)):
+        tail = git(d, "branch", "--show-current").rsplit("/", 1)[-1]
+        root = git(d, "rev-parse", "--show-toplevel")
+        if not tail or not root:
+            continue
+        paths = []
+        for path in sorted(glob.glob(os.path.join(root, "docs", "specs", "*.tasks.json"))):
+            m = re.match(r"(\d{4})-(.+)\.tasks\.json$", os.path.basename(path))
+            if m and (tail == m.group(2) or tail.startswith(m.group(1) + "-")):
+                paths.append(path)
+        if paths:
+            return root, paths
+    return None, []
 
 
 def problem(root, path):
@@ -63,10 +73,8 @@ def main():
         return 0
     if not isinstance(data, dict):
         return 0
-    root, nnnn = find_repo(data.get("cwd") or os.getcwd())
-    if not root:
-        return 0
-    for path in sorted(glob.glob(os.path.join(root, "docs", "specs", f"{nnnn}-*.tasks.json"))):
+    root, paths = specs_on_branch(data.get("cwd") or os.getcwd())
+    for path in paths:
         msg = problem(root, path)
         if msg:
             print(json.dumps({"hookSpecificOutput": {"hookEventName": "Stop", "additionalContext": msg}}))
