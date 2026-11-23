@@ -187,9 +187,10 @@ def terraform_commit_problem(d):
     exe = shutil.which("terraform")
     if not exe:
         return "ask", "Das Repo enthält Terraform, aber terraform fehlt: fmt vor dem Commit nicht prüfbar."
-    real = os.path.realpath(exe)
-    if any(real.startswith(os.path.join(os.path.realpath(p), "")) for p in (top, d, os.getcwd())):
-        return "ask", f"terraform wird aus dem Repo bzw. Arbeitsordner aufgelöst ({exe}): fmt-Prüfung nicht ausgeführt."
+    def norm(p):
+        return os.path.normcase(os.path.realpath(p))
+    if norm(os.path.dirname(os.path.abspath(exe))) in (norm(d), norm(os.getcwd())):  # Windows sucht dort zuerst
+        return "ask", f"terraform liegt im Arbeitsordner ({exe}): fmt-Prüfung nicht ausgeführt."
     if os.path.splitext(exe)[1].lower() in (".bat", ".cmd"):  # cmd.exe deutete Sonderzeichen in Dateinamen
         return "ask", f"terraform ist ein Batch-Wrapper ({exe}): fmt-Prüfung nicht ausgeführt."
     try:  # nur von git erfasste Dateien, nicht .terraform/ oder andere ignorierte Ordner
