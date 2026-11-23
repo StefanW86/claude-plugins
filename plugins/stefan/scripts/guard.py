@@ -10,7 +10,8 @@
 - Commit mit Co-Authored-By-Trailer verboten (Vorgabe des Nutzers).
 - Terraform: Commit mit State, Plan, `.terraform/`, Lock-Datei oder `*.tfvars` verboten; Commit nur, wenn `terraform fmt -check` für die von git erfassten Terraform-Dateien durchläuft; Befehle, die
   Infrastruktur oder State ändern (apply, destroy, import, state rm/mv …): Rückfrage, ebenso `terraform test` mit
-  run-Blöcken ohne `command = plan` in Testdateien ohne `mock_provider`.
+  run-Blöcken ohne eigenes `command = plan` in Testdateien (HCL, JSON) ohne `mock_provider`; Testdateien über 1 MiB
+  gelten als nicht prüfbar.
 - PowerShell: Commit verboten, wenn ein Skript (.ps1/.psm1/.psd1) Nicht-ASCII ohne BOM enthält und nicht per
   `#Requires -Version 6+` bzw. `-PSEdition Core` auf PowerShell 7 beschränkt ist (5.1 liest es sonst als ANSI).
 Gilt für Bash (Linux, Git Bash unter Windows) und PowerShell.
@@ -44,9 +45,12 @@ TF_CHANGE = {"apply", "destroy", "import", "taint", "untaint", "force-unlock"}
 TF_STATE_READ = {"list", "show", "pull", "identities"}
 TF_FORBIDDEN = ["**/*.tfstate", "**/*.tfstate.*", "**/.terraform/**", "**/.terraform.lock.hcl", "**/*.tfplan",
                 "**/*.tfvars", "**/*.tfvars.json"]
+TF_TEST_SUFFIXES = (".tftest.hcl", ".tftest.json")
+TF_TEST_MAX = 1 << 20  # größere Testdateien gelten als nicht prüfbar
 # Zeichenketten (Klammern darin zählen nicht) und Kommentare in HCL
 TF_TEST_NOISE = re.compile(r'"(?:\\.|[^"\\\n])*"|/\*.*?\*/|(?:#|//)[^\n]*', re.S)
-TF_RUN = re.compile(r'\brun(?:\s*""|\s+[A-Za-z_][\w-]*)\s*\{')
+TF_TOKENS = re.compile(r'(?P<run>\brun(?:\s*""|\s+[A-Za-z_][\w-]*)\s*\{)|(?P<plan>\bcommand\s*=\s*plan\b)'
+                       r'|(?P<open>\{)|(?P<close>\})')
 PS_FILES = ["**/*.ps1", "**/*.psm1", "**/*.psd1"]
 PS_BOMS = (b"\xef\xbb\xbf", b"\xff\xfe", b"\xfe\xff")
 PS_CORE_ONLY = re.compile(rb"^[ \t]*#requires\b[^\n]*?-(?:version[ \t]+([0-9]+)|psedition[ \t]+core)", re.I | re.M)
@@ -185,20 +189,44 @@ def flag_values(args, name):
 
 
 def runs_real_infrastructure(text):
-    """True, wenn eine Terraform-Testdatei ohne mock_provider einen run-Block ohne `command = plan` hat."""
+    """True, wenn eine HCL-Testdatei ohne mock_provider einen run-Block ohne eigenes `command = plan` hat."""
     code = TF_TEST_NOISE.sub(lambda m: '""' if m.group(0).startswith('"') else "", text)
     if re.search(r"\bmock_provider\b", code):
         return False
-    for m in TF_RUN.finditer(code):
-        depth, end = 0, len(code)
-        for i in range(m.end() - 1, len(code)):
-            depth += {"{": 1, "}": -1}.get(code[i], 0)
-            if depth == 0:
-                end = i
-                break
-        if not re.search(r"\bcommand\s*=\s*plan\b", code[m.end():end]):
-            return True
-    return False
+    depth, in_run, planned = 0, False, False
+    for t in TF_TOKENS.finditer(code):  # ein Durchlauf über die Datei
+        kind = t.lastgroup
+        if kind == "run" and depth == 0:
+            depth, in_run, planned = 1, True, False
+        elif kind in ("run", "open"):
+            depth += 1
+        elif kind == "close":
+            depth = max(depth - 1, 0)
+            if depth == 0 and in_run:
+                if not planned:
+                    return True
+                in_run = False
+        elif kind == "plan" and in_run and depth == 1:  # nur direkt im run-Block, nicht in Unterblöcken
+            planned = True
+    return in_run and not planned
+
+
+def json_runs_real_infrastructure(text):
+    """Wie runs_real_infrastructure, für Testdateien in JSON-Syntax."""
+    try:
+        doc = json.loads(text)
+    except RecursionError:  # zu tief verschachtelt: nicht prüfbar
+        return True
+    except ValueError:  # ungültig: terraform führt sie nicht aus
+        return False
+    if not isinstance(doc, dict) or "mock_provider" in doc:
+        return False
+    runs, bodies = doc.get("run"), []
+    for group in runs if isinstance(runs, list) else [runs]:
+        if isinstance(group, dict):  # Label → Block bzw. Liste von Blöcken
+            for body in group.values():
+                bodies += body if isinstance(body, list) else [body]
+    return any(not (isinstance(b, dict) and b.get("command") == "plan") for b in bodies)
 
 
 def terraform_test_problem(seg, cwd):
@@ -212,19 +240,26 @@ def terraform_test_problem(seg, cwd):
         for sub in ("", (flag_values(args, "-test-directory") or ["tests"])[-1]):
             try:
                 files += [os.path.join(sub, f) for f in sorted(os.listdir(os.path.join(base, sub)))
-                          if f.endswith(".tftest.hcl")]
+                          if f.endswith(TF_TEST_SUFFIXES)]
             except OSError:  # Ordner fehlt
                 pass
     bad = []
     for f in files:
-        try:
-            with open(os.path.join(base, f), encoding="utf-8", errors="replace") as fh:
-                if runs_real_infrastructure(fh.read()):
-                    bad.append(f)
-        except OSError:  # Ordner, gelöscht oder nicht lesbar
+        path = os.path.join(base, f)
+        if not os.path.isfile(path):  # Ordner, Gerät, FIFO: nicht öffnen
             continue
+        try:
+            with open(path, "rb") as fh:
+                data = fh.read(TF_TEST_MAX + 1)
+        except OSError:  # gelöscht oder nicht lesbar
+            continue
+        if len(data) > TF_TEST_MAX:
+            bad.append(f"{f} (zu groß zum Prüfen)")
+        elif (json_runs_real_infrastructure if f.endswith(".json") else runs_real_infrastructure)(
+                data.decode("utf-8", errors="replace")):
+            bad.append(f)
     if bad:
-        return (f"terraform test legt echte Infrastruktur an: run-Blöcke ohne `command = plan` und ohne "
+        return (f"terraform test kann echte Infrastruktur anlegen: run-Blöcke ohne `command = plan` und ohne "
                 f"`mock_provider` in {', '.join(bad[:5])}. Nur mit Freigabe, nie gegen Prod.")
     return None
 
