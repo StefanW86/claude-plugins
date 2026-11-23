@@ -79,10 +79,10 @@ Start with `What this repo does:` in two or three sentences, and the load
 you assumed.
 
 Then the findings in three groups, most important first, skip empty groups:
-- **Must fix:** bug, security, data loss, breaks at the expected load.
-- **Should fix:** risky code without a test, real slowness, duplication, a
+- **High:** bug, security, data loss, breaks at the expected load.
+- **Medium:** risky code without a test, real slowness, duplication, a
   function that mixes jobs, code that should not exist.
-- **Nice to have:** small speed-ups, shorter forms.
+- **Low:** small speed-ups, shorter forms.
 
 Number findings across all groups, so the user can say "fix 2 and 5". At
 most 20 findings; if you left smaller ones out, say how many.
