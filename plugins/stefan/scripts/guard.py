@@ -173,8 +173,8 @@ def check_shell(command, cwd, powershell=False):
                 decide("deny", "Ohne Co-Authored-By committen (Vorgabe des Nutzers): denselben Commit ohne diese "
                                "Zeile wiederholen.")
             if sub == "commit" and (switched[gd] in MAIN if gd in switched else commit_on_main(gd)):
-                decide("deny", "Nie direkt auf main committen: erst Branch anlegen (git switch -c feat/…), "
-                               "die Änderungen wandern mit.")
+                decide("deny", "Nie direkt auf main committen: erst einen Branch nach dem Schema des Projekts anlegen "
+                               "(sonst feat/… bzw. fix/…), die Änderungen wandern mit.")
             continue
         targets = [seg[i + 1] for i in range(len(seg) - 1) if seg[i] in REDIRECTS]
         if cmd in WRITE_CMDS or (cmd == "sed" and any(t.startswith("-i") for t in seg[1:])):

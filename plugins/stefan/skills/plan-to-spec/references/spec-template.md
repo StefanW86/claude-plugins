@@ -10,7 +10,7 @@
 - **Status:** Ready · **Datum:** YYYY-MM-DD
 - **Quelle:** <[Plan NNNN](../plans/NNNN-<slug>.md) | Interview vom YYYY-MM-DD> · **Fortschritt:** [tasks.json](NNNN-<slug>.tasks.json)
 - **Größe:** <klein|groß> (<Treffer>) → <eine Session | Orchestrator + Subagenten>
-- **Umsetzung:** Skill `stefan:implement` (TDD, Reviews, Abschluss), Branch `feat/NNNN-<slug>`
+- **Umsetzung:** Skill `stefan:implement` (TDD, Reviews, Abschluss), Branch nach Projektschema, sonst `feat/NNNN-<slug>` (letzter Namensteil `NNNN-<slug>` oder `<slug>`)
 - **Vorab vom Nutzer:** <nur was Claude nicht selbst kann, mit Ort, z. B. Secret `DEPLOY_DISPATCH_TOKEN` im App-Repo, `TUNNEL_TOKEN` in Prod-`.env` | keine>
 
 ## 1. Umfang
