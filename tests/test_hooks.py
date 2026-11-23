@@ -159,7 +159,9 @@ FAKE_TERRAFORM = """#!/bin/sh
 # Ersatz für terraform fmt -check: unformatiert ist, was UNFORMATTED enthält
 PATH=/usr/bin:/bin
 [ "$1" = fmt ] || exit 1
-case " $* " in *" -recursive "*) files=$(find . -name '*.tf') ;; *) files=$(ls ./*.tf 2>/dev/null) ;; esac
+shift
+files=$(for a in "$@"; do case "$a" in -*) ;; *) echo "$a" ;; esac; done)
+[ -n "$files" ] || case " $* " in *" -recursive "*) files=$(find . -name '*.tf') ;; *) files=$(ls ./*.tf 2>/dev/null) ;; esac
 [ -n "$files" ] && grep -qs UNFORMATTED $files && exit 3
 exit 0
 """
@@ -209,6 +211,13 @@ class TerraformGuardTest(unittest.TestCase):
 
     def test_commit_with_formatted_terraform_allowed(self):
         self.with_terraform()
+        self.write("main.tf", "ok")
+        self.assertIsNone(self.bash("git add -A && git commit -m x", cwd=self.infra))
+
+    def test_commit_ignores_terraform_outside_git(self):
+        self.with_terraform()
+        self.write(".gitignore", ".terraform/\n")
+        self.write(".terraform/modules/vpc/main.tf", "UNFORMATTED")
         self.write("main.tf", "ok")
         self.assertIsNone(self.bash("git add -A && git commit -m x", cwd=self.infra))
 
