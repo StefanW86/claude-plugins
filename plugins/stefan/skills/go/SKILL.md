@@ -10,6 +10,7 @@ Verkettet die Phasen-Skills. Jede Phase lädt ihren Skill per Skill-Tool und fol
 
 ## Einstieg bestimmen (bei jedem Aufruf)
 - **Mit Idee als Argument:** neue Arbeit bei Phase 1. Läuft schon eine unfertige Arbeit, kurz fragen: fortsetzen oder neu beginnen.
+- **Mit Befunden aus einem Bericht** (z. B. `docs/audit/…`, Nummern): direkt `stefan:implement` im Modus Direkt, ohne Phase 1.
 - **Ohne Argument:** die neueste unfertige Arbeit in `docs/plans/` und `docs/specs/` suchen (gleiche Nummer = gleiche Arbeit) und einsteigen:
 
 | Zustand | Phase |

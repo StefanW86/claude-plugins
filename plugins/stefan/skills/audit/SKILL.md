@@ -104,4 +104,5 @@ End with:
 Nothing found: `What this repo does:`, then `Healthy. Nothing to fix.` and
 one line on what you checked.
 
-One-shot report: writes only the report file, changes no code.
+One-shot report: writes only the report file, changes no code. Name the next
+step: `/stefan:implement docs/audit/<file> <numbers>` fixes the chosen findings.

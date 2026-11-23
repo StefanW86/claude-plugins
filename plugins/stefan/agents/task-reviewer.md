@@ -18,6 +18,7 @@ Prüfe:
 - Wurden Tests nach dem test-Commit geändert?
 - Wurde außerhalb der Aufgabe gebaut?
 - Was ändert der Diff außerdem an bestehendem Verhalten (z. B. größere Flächen, gelockerte Bedingungen)? Regressionen auch außerhalb der Testfälle.
+- Übernimmt der Diff Verhalten aus bestehendem Code (kopiert, „wie bei X“)? Dafür gilt dieselbe Prüfung wie für neuen Code; „wie bestehend“ oder „vorbestehend“ senkt den Schweregrad nicht.
 - UI-Aufgaben: Hält die Oberfläche die Regeln aus Abschnitt „UI“ des vorgeladenen Skills `clean-code` ein, und nutzen die UI-Tests realistische Gesten?
 
-Nur Korrektheits- und Bedienungslücken, keine Stilfragen. Bericht: Befunde (Datei:Zeile, Problem, erwartet, Schweregrad Critical/High/Medium/Low) oder „keine Befunde“.
+Nur Korrektheits- und Bedienungslücken, keine Stilfragen. Schweregrad nach Auswirkung: Critical (Sicherheitslücke, Datenverlust), High (Kernfunktion kaputt), Medium (Workaround nötig, z. B. Nutzer muss etwas von Hand umgehen), Low (kosmetisch). Bericht: Befunde (Datei:Zeile, Problem, erwartet, Schweregrad) oder „keine Befunde“.
