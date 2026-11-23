@@ -3,8 +3,8 @@ name: audit
 description: >
   Quality audit of a whole repo: bugs, security holes, what breaks under real
   load, risky code without tests, slow paths, and what to delete, merge or
-  split. Ranked, each finding explained in plain English. One-shot report,
-  changes nothing. Only on explicit /stefan:audit.
+  split. Ranked, each finding explained in plain English. Writes the report to
+  docs/audit/, changes no code. Only on explicit /stefan:audit.
 disable-model-invocation: true
 ---
 
@@ -66,6 +66,12 @@ tested and fixed later. This is a report the user asked for, so give it in full.
 
 ## 4. Output
 
+Write the report to `docs/audit/<YYYY-MM-DD>-<scope>.md` (scope: the folder
+or package audited, `repo` for the whole repo; add `-2` etc. if the file
+exists). It is the work list for later fixes, so each finding must stand on
+its own: file and lines, problem, fix. Do not commit it. In the chat give only
+the path, the verdict and the titles of the must-fix findings.
+
 Very simple English: short sentences, everyday words. Explain a technical
 term the first time you use it. The reader may never have seen this code.
 
@@ -98,4 +104,4 @@ End with:
 Nothing found: `What this repo does:`, then `Healthy. Nothing to fix.` and
 one line on what you checked.
 
-One-shot report, changes no code.
+One-shot report: writes only the report file, changes no code.
