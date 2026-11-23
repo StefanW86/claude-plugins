@@ -211,14 +211,19 @@ def runs_real_infrastructure(text):
     return in_run and not planned
 
 
+def unique_json_object(pairs):
+    """object_pairs_hook: doppelte Schlüssel (in HCL-JSON ggf. mehrere Blöcke) nicht stillschweigend überschreiben."""
+    if len({k for k, _ in pairs}) != len(pairs):
+        raise ValueError("doppelter Schlüssel")
+    return dict(pairs)
+
+
 def json_runs_real_infrastructure(text):
     """Wie runs_real_infrastructure, für Testdateien in JSON-Syntax."""
     try:
-        doc = json.loads(text)
-    except RecursionError:  # zu tief verschachtelt: nicht prüfbar
+        doc = json.loads(text, object_pairs_hook=unique_json_object)
+    except (ValueError, RecursionError):  # ungültig, doppelte Schlüssel, zu tief: nicht prüfbar
         return True
-    except ValueError:  # ungültig: terraform führt sie nicht aus
-        return False
     if not isinstance(doc, dict) or "mock_provider" in doc:
         return False
     runs, bodies = doc.get("run"), []
@@ -256,7 +261,7 @@ def terraform_test_problem(seg, cwd):
         if len(data) > TF_TEST_MAX:
             bad.append(f"{f} (zu groß zum Prüfen)")
         elif (json_runs_real_infrastructure if f.endswith(".json") else runs_real_infrastructure)(
-                data.decode("utf-8", errors="replace")):
+                data.decode("utf-8-sig", errors="replace")):
             bad.append(f)
     if bad:
         return (f"terraform test kann echte Infrastruktur anlegen: run-Blöcke ohne `command = plan` und ohne "
