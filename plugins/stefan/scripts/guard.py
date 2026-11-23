@@ -8,7 +8,7 @@
 - Commit auf main/master verboten (außer erstem Commit und Merge-/Squash-Abschluss); ein Branchwechsel
   vorher im selben Befehl zählt.
 - Commit mit Co-Authored-By-Trailer verboten (Vorgabe des Nutzers).
-- Terraform: Commit nur, wenn `terraform fmt -check` für die von git erfassten Terraform-Dateien durchläuft; Befehle, die
+- Terraform: Commit mit State, Plan, `.terraform/`, Lock-Datei oder `*.tfvars` verboten; Commit nur, wenn `terraform fmt -check` für die von git erfassten Terraform-Dateien durchläuft; Befehle, die
   Infrastruktur oder State ändern (apply, destroy, import, state rm/mv …): Rückfrage.
 Gilt für Bash (Linux, Git Bash unter Windows) und PowerShell.
 Textabgleich ist ein Sicherheitsnetz, keine Sicherheitsgrenze.
@@ -39,6 +39,8 @@ CO_AUTHOR = re.compile(r"co-authored-by\s*[:=]", re.I)
 CREATE_FLAGS = {"-b", "-B", "-c", "-C", "--create", "--force-create", "--orphan"}
 TF_CHANGE = {"apply", "destroy", "import", "taint", "untaint", "force-unlock"}
 TF_STATE_READ = {"list", "show", "pull", "identities"}
+TF_FORBIDDEN = ["**/*.tfstate", "**/*.tfstate.*", "**/.terraform/**", "**/.terraform.lock.hcl", "**/*.tfplan",
+                "**/*.tfvars", "**/*.tfvars.json"]
 HEREDOC = re.compile(r"(<<-?\s*(['\"]?)(\w+)\2)([^\n]*)\n.*?^[ \t]*\3[ \t]*$", re.S | re.M)
 
 
@@ -162,17 +164,34 @@ def terraform_changes(seg):
             or (sub == "workspace" and rest[:1] == ["delete"]))
 
 
-def terraform_unformatted(d):
-    """Grund zum Ablehnen bzw. Nachfragen, wenn ein Commit unformatiertes Terraform enthielte, sonst None."""
+def repo_files(top, *patterns):
+    """Dateien im Index oder ungetrackt und nicht ignoriert, die auf ein Glob-Muster passen."""
+    out = subprocess.run(["git", "-C", top, "ls-files", "-z", "--cached", "--others", "--exclude-standard", "--",
+                          *(f":(glob){p}" for p in patterns)], capture_output=True).stdout
+    return sorted(set(f for f in os.fsdecode(out).split("\0") if f))
+
+
+def terraform_commit_problem(d):
+    """(Entscheidung, Grund), wenn ein Commit Terraform-Secrets bzw. unformatiertes Terraform enthielte, sonst None."""
     top = git_out(d, "rev-parse", "--show-toplevel")
-    listed = subprocess.run(["git", "-C", top, "ls-files", "-z", "--cached", "--others", "--exclude-standard", "--",
-                             "*.tf", "*.tfvars", "*.tftest.hcl"], capture_output=True).stdout if top else b""
-    files = [f for f in os.fsdecode(listed).split("\0") if f and os.path.exists(os.path.join(top, f))]
+    if not top:
+        return None
+    forbidden = repo_files(top, *TF_FORBIDDEN)
+    if forbidden:
+        return "deny", ("State, Plan, .terraform/, Lock-Datei und *.tfvars gehören nicht ins Repo: "
+                        f"{', '.join(forbidden[:5])}. Mit `git rm --cached` aus dem Index nehmen und in .gitignore "
+                        "eintragen; Beispielwerte als *.tfvars.example.")
+    files = [f for f in repo_files(top, "**/*.tf", "**/*.tftest.hcl") if os.path.exists(os.path.join(top, f))]
     if not files:
         return None
     exe = shutil.which("terraform")
     if not exe:
         return "ask", "Das Repo enthält Terraform, aber terraform fehlt: fmt vor dem Commit nicht prüfbar."
+    real = os.path.realpath(exe)
+    if any(real.startswith(os.path.join(os.path.realpath(p), "")) for p in (top, d, os.getcwd())):
+        return "ask", f"terraform wird aus dem Repo bzw. Arbeitsordner aufgelöst ({exe}): fmt-Prüfung nicht ausgeführt."
+    if os.path.splitext(exe)[1].lower() in (".bat", ".cmd"):  # cmd.exe deutete Sonderzeichen in Dateinamen
+        return "ask", f"terraform ist ein Batch-Wrapper ({exe}): fmt-Prüfung nicht ausgeführt."
     try:  # nur von git erfasste Dateien, nicht .terraform/ oder andere ignorierte Ordner
         r = subprocess.run([exe, "fmt", "-check", "--", *files], cwd=top, capture_output=True, text=True, timeout=8)
     except subprocess.TimeoutExpired:
@@ -211,7 +230,7 @@ def check_shell(command, cwd, powershell=False):
                 decide("deny", "Nie direkt auf main committen: erst einen Branch nach dem Schema des Projekts anlegen "
                                "(sonst feat/… bzw. fix/…), die Änderungen wandern mit.")
             if sub == "commit":
-                fmt = terraform_unformatted(gd)
+                fmt = terraform_commit_problem(gd)
                 if fmt and fmt[0] == "deny":
                     decide(*fmt)
                 ask = ask or (fmt and fmt[1])

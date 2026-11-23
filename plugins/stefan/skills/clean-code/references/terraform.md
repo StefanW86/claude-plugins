@@ -9,7 +9,8 @@ Ergänzt `SKILL.md` für Projekte mit `*.tf`; ersetzt dort „je Modul bzw. Klas
 
 ## Versionen und Git
 - Terraform, Provider und Registry-Module exakt pinnen: `.terraform.lock.hcl` kommt nicht ins Repo, der Pin ersetzt sie.
-- `.gitignore`: `.terraform/`, `.terraform.lock.hcl`, `*.tfstate*`, Plan-Dateien, `*.tfvars` mit Secrets.
+- `.gitignore`: `.terraform/`, `.terraform.lock.hcl`, `*.tfstate*`, `*.tfplan`, `*.tfvars`, `*.tfvars.json`. Der Schutz-Hook lehnt Commits mit diesen Dateien ab.
+- Plan immer mit `-out=<name>.tfplan`. Ins Repo nur `*.tfvars.example` mit Platzhaltern; Werte ohne Secrets als `default` der Variable.
 - Vor jedem Commit `terraform fmt -recursive` im Repo-Wurzelverzeichnis; der Schutz-Hook lehnt sonst ab.
 
 ## TDD
