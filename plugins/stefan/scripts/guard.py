@@ -8,7 +8,7 @@
 - Commit auf main/master verboten (außer erstem Commit und Merge-/Squash-Abschluss); ein Branchwechsel
   vorher im selben Befehl zählt.
 - Commit mit Co-Authored-By-Trailer verboten (Vorgabe des Nutzers).
-- Terraform: Commit nur, wenn `terraform fmt -check -recursive` im Repo durchläuft; Befehle, die
+- Terraform: Commit nur, wenn `terraform fmt -check` für die von git erfassten Terraform-Dateien durchläuft; Befehle, die
   Infrastruktur oder State ändern (apply, destroy, import, state rm/mv …): Rückfrage.
 Gilt für Bash (Linux, Git Bash unter Windows) und PowerShell.
 Textabgleich ist ein Sicherheitsnetz, keine Sicherheitsgrenze.
@@ -165,15 +165,21 @@ def terraform_changes(seg):
 def terraform_unformatted(d):
     """Grund zum Ablehnen bzw. Nachfragen, wenn ein Commit unformatiertes Terraform enthielte, sonst None."""
     top = git_out(d, "rev-parse", "--show-toplevel")
-    if not top or not git_out(top, "ls-files", "--cached", "--others", "--exclude-standard", "--", "*.tf"):
+    listed = git_out(top, "ls-files", "--cached", "--others", "--exclude-standard", "--",
+                     "*.tf", "*.tfvars", "*.tftest.hcl") if top else None
+    files = [f for f in (listed or "").splitlines() if os.path.exists(os.path.join(top, f))]
+    if not files:
         return None
     exe = shutil.which("terraform")
     if not exe:
         return "ask", "Das Repo enthält Terraform, aber terraform fehlt: fmt vor dem Commit nicht prüfbar."
-    r = subprocess.run([exe, "fmt", "-check", "-recursive"], cwd=top, capture_output=True, text=True)
+    try:  # nur von git erfasste Dateien, nicht .terraform/ oder andere ignorierte Ordner
+        r = subprocess.run([exe, "fmt", "-check", *files], cwd=top, capture_output=True, text=True, timeout=8)
+    except subprocess.TimeoutExpired:
+        return "ask", "terraform fmt -check hat nicht rechtzeitig geantwortet."
     if r.returncode != 0:
-        return "deny", ("Vor jedem Commit terraform fmt: im Repo-Wurzelverzeichnis `terraform fmt -recursive` "
-                        f"ausführen, Änderungen stagen, Commit wiederholen. Betroffen: {r.stdout.strip()}")
+        return "deny", ("Vor jedem Commit terraform fmt: die betroffenen Dateien mit `terraform fmt <datei>` "
+                        f"formatieren, stagen, Commit wiederholen. Betroffen: {(r.stdout + r.stderr).strip()}")
     return None
 
 
