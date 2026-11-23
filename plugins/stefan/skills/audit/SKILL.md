@@ -69,8 +69,8 @@ tested and fixed later. This is a report the user asked for, so give it in full.
 Write the report to `docs/audit/<YYYY-MM-DD>-<scope>.md` (scope: the folder
 or package audited, `repo` for the whole repo; add `-2` etc. if the file
 exists). It is the work list for later fixes, so each finding must stand on
-its own: file and lines, problem, fix. Do not commit it. In the chat give only
-the path, the verdict and the titles of the must-fix findings.
+its own: file and lines, problem, fix. Do not commit it. Give the same full
+report in the chat, then the path of the file.
 
 Very simple English: short sentences, everyday words. Explain a technical
 term the first time you use it. The reader may never have seen this code.
