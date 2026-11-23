@@ -1,6 +1,7 @@
 """Tests der Hook-Skripte im Plugin stefan. Ausführen: python3 -m unittest discover tests"""
 import json
 import os
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -151,6 +152,72 @@ class GuardTest(unittest.TestCase):
     def test_invalid_input_ignored(self):
         r = run_script("guard.py", "kein json", self.env)
         self.assertEqual((r.returncode, r.stdout), (0, ""))
+
+
+
+FAKE_TERRAFORM = """#!/bin/sh
+# Ersatz für terraform fmt -check: unformatiert ist, was UNFORMATTED enthält
+[ "$1" = fmt ] || exit 1
+case " $* " in *" -recursive "*) files=$(find . -name '*.tf') ;; *) files=$(ls ./*.tf 2>/dev/null) ;; esac
+[ -n "$files" ] && grep -qs UNFORMATTED $files && exit 3
+exit 0
+"""
+
+
+class TerraformGuardTest(unittest.TestCase):
+    tearDown, decision, bash, ps = GuardTest.tearDown, GuardTest.decision, GuardTest.bash, GuardTest.ps
+
+    def setUp(self):
+        GuardTest.setUp(self)
+        self.bin = os.path.join(self.home, "bin")
+        os.makedirs(self.bin)
+        for tool in ("git", "python3"):
+            os.symlink(shutil.which(tool), os.path.join(self.bin, tool))
+        self.env["PATH"] = self.bin
+        self.infra = make_repo(os.path.join(self.home, "dev", "Infra"), branch="feat/x")
+
+    def with_terraform(self):
+        path = os.path.join(self.bin, "terraform")
+        with open(path, "w") as f:
+            f.write(FAKE_TERRAFORM)
+        os.chmod(path, 0o755)
+
+    def write(self, rel, text):
+        path = os.path.join(self.infra, rel)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w") as f:
+            f.write(text)
+
+    def test_terraform_changes_ask(self):
+        for c in ("terraform apply", "terraform -chdir=infra apply -auto-approve", "sudo terraform destroy",
+                  "terraform state rm aws_instance.web", "terraform import aws_instance.web i-1",
+                  "terraform plan -out p && terraform apply p"):
+            self.assertEqual(self.bash(c), "ask", c)
+        self.assertEqual(self.ps("terraform.exe apply"), "ask")
+
+    def test_terraform_read_only_allowed(self):
+        for c in ("terraform init -backend=false", "terraform plan", "terraform validate", "terraform fmt -recursive",
+                  "terraform test", "terraform state list", "terraform show", "echo 'terraform apply'"):
+            self.assertIsNone(self.bash(c), c)
+
+    def test_commit_with_unformatted_terraform_denied(self):
+        self.with_terraform()
+        self.write("infra/main.tf", "UNFORMATTED")
+        self.assertEqual(self.bash("git add -A && git commit -m x", cwd=self.infra), "deny")
+        self.assertEqual(self.bash("git commit -m x", cwd=os.path.join(self.infra, "infra")), "deny")
+
+    def test_commit_with_formatted_terraform_allowed(self):
+        self.with_terraform()
+        self.write("main.tf", "ok")
+        self.assertIsNone(self.bash("git add -A && git commit -m x", cwd=self.infra))
+
+    def test_commit_with_terraform_but_no_binary_asks(self):
+        self.write("main.tf", "ok")
+        self.assertEqual(self.bash("git commit -m x", cwd=self.infra), "ask")
+
+    def test_commit_without_terraform_files_needs_no_binary(self):
+        self.write("README.md", "UNFORMATTED")
+        self.assertIsNone(self.bash("git add -A && git commit -m x", cwd=self.infra))
 
 
 class OpenTasksTest(unittest.TestCase):
