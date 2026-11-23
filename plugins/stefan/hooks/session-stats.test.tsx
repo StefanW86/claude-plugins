@@ -102,3 +102,39 @@ for (const command of ['stefan:session-stats']) test(`/${command} gibt die Werte
   expect(r.text).toContain('Kosten  Haupt $1.00')
   expect(r.text).toContain('(Oberflächen: keine)')
 })
+
+test('Subagent-Kosten und -Zeit zählen, auch wenn der Agent am Ende nicht mehr gelistet ist', async ($, on) => {
+  let listed = [{ id: 'a1', type: 'stefan:task-implementer', cost: { usd: 3 } } as unknown as AgentInfo]
+  on('session.usage', () => ({
+    value: { startedAt: 0, context: { window: 200_000 }, rateLimits: [], cost: { usd: 10 } },
+  }))
+  on('agent.list', () => ({ value: listed }))
+  on('session.surfaces', () => ({ value: [] }))
+  on('clock.now', () => ({ value: 600_000 }))
+  on('turn.start', (_, e) => ({ turnId: e.turnId }))
+  on('turn.step', async function* (_, e) {
+    return { turnId: e.turnId, index: e.index, answer: '', toolUses: [] } as never
+  })
+  on('turn.complete', () => ({ text: '' }))
+  on('command.run', () => ({ text: '' }))
+
+  await $.turn.start({ text: 'los', turnId: 't1' })
+  const step = $.turn.step({ turnId: 's1', index: 0, model: 'sonnet', messageCount: 1, agentId: 'a1' })
+  for await (const _ of step) {
+    // Chunks interessieren hier nicht.
+  }
+  listed = []
+  await $.turn.complete({
+    answer: '', durationMs: 60_000, isAborted: false, turnId: 's1', agentId: 'a1', reason: 'answer',
+  })
+  await $.turn.complete({ answer: '', durationMs: 120_000, isAborted: false, turnId: 't1', reason: 'answer' })
+
+  const r = await $.command.run({
+    command: 'stefan:session-stats',
+    args: '',
+    origin: { kind: 'composer' },
+    presentation: { isFullscreen: false, columns: 120 },
+  })
+  expect(r.text).toContain('Kosten  Haupt $7.00 · Code $3.00')
+  expect(r.text).toContain('Code 1m00s')
+})
