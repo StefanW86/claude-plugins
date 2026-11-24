@@ -33,6 +33,7 @@ Die Spec sagt *wie, in welcher Reihenfolge und woran „fertig“ erkennbar ist*
    - [ ] Bestehendes Projekt: Jede neue bzw. geänderte Anforderung ist gegen die vorhandenen Tests und Plattformvorgaben geprüft (`grep` in den Tests nach betroffenen Abläufen, Maßen, Geräten). Was bestehende Tests brechen würde, ist mit dem Nutzer geklärt und steht als bewusste Änderung samt anzupassender Tests in der Aufgabe.
    - [ ] Aufgaben, die dieselbe Datei oder Schnittstelle berühren, passen zusammen (was die eine erzeugt, nutzt die andere so).
    - [ ] Anforderungen widersprechen sich nicht (z. B. Touch-Ziel ≥ 44 px gegen dicht liegende Punkte); Konflikte hat der Nutzer entschieden.
+   - [ ] Das Prüfskript (Abschnitt 2) startet Browser und Server nur, wenn sie nicht laufen, und baut nur nach Änderungen am Produktivcode neu; fehlt das im bestehenden Projekt, legt es T01 an.
    - [ ] Jeder E2E-Testfall findet seine Ausgangsdaten vor (Seed, Test- bzw. Staging-DB); fehlende Daten legt eine Aufgabe an oder sie stehen unter „Vorab vom Nutzer“.
    - [ ] Bei „groß“: Jede Aufgabendatei ist ohne Spec lösbar.
 8. **Abschluss:** Pfad, Größe/Modus, Anzahl Aufgaben, wichtigste Builder-Entscheidungen und „Vorab vom Nutzer“ nennen. Empfehlen: Spec reviewen, dann in einer neuen Session `/stefan:implement docs/specs/NNNN-<slug>.md`.
