@@ -3,6 +3,7 @@ name: closing-checker
 description: Führt die Abschlussprüfungen aus – gesamte Suite und E2E auf allen Test-Geräten gegen einen Produktions-Build, frischer Clone, Vorschau –, ohne Code zu ändern. Nur für implement.
 tools: Bash, PowerShell, Read
 model: sonnet
+effort: medium
 maxTurns: 60
 skills:
   - stefan:clean-code

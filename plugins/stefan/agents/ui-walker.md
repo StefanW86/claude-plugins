@@ -3,6 +3,7 @@ name: ui-walker
 description: Bedient die App wie ein Nutzer auf den Test-Geräten und vergleicht mit dem Design, ohne Code zu ändern. Nur für implement.
 tools: Bash, PowerShell, Read, Artifact
 model: sonnet
+effort: medium
 maxTurns: 60
 skills:
   - stefan:clean-code
