@@ -4,6 +4,7 @@ diese In Progress ist und bearbeitbare Aufgaben oder der Abschluss offen sind. B
 NNNN-<slug>: letzter Pfadteil ist <slug> oder beginnt mit NNNN- (feat/0003-x, feature/x, bug/0003-y).
 blocked heißt: wartet auf den Nutzer, ebenso alles, was davon abhängt. Der Hinweis kommt als
 additionalContext: Claude arbeitet weiter, ohne dass die Oberfläche einen Hook-Fehler meldet.
+Läuft ein Subagent im Hintergrund, kein Hinweis: Sein Ende weckt die Session ohnehin.
 """
 import glob
 import json
@@ -72,6 +73,9 @@ def main():
     except ValueError:
         return 0
     if not isinstance(data, dict):
+        return 0
+    background = data.get("background_tasks")
+    if isinstance(background, list) and any(isinstance(t, dict) and t.get("type") == "subagent" for t in background):
         return 0
     root, paths = specs_on_branch(data.get("cwd") or os.getcwd())
     for path in paths:
