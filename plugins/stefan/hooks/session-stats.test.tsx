@@ -21,6 +21,7 @@ test('ordnet Subagent-Typen den Gruppen zu', async () => {
   expect(groupOf('stefan:task-implementer')).toBe('code')
   expect(groupOf('stefan:task-reviewer')).toBe('review')
   expect(groupOf('stefan:ui-walker')).toBe('review')
+  expect(groupOf('stefan:closing-checker')).toBe('review')
   expect(groupOf('Explore')).toBe('other')
   expect(groupOf(undefined)).toBe('other')
 })
