@@ -23,7 +23,7 @@ export const empty = (startedAt: number): Stats => ({
 
 export const groupOf = (type: string | undefined): Group => {
   if (type?.endsWith('task-implementer')) return 'code'
-  if (type?.endsWith('task-reviewer') || type?.endsWith('ui-walker')) return 'review'
+  if (type?.endsWith('task-reviewer') || type?.endsWith('ui-walker') || type?.endsWith('closing-checker')) return 'review'
   return 'other'
 }
 
