@@ -437,10 +437,10 @@ class OpenTasksTest(unittest.TestCase):
         with open(os.path.join(self.repo, f"docs/specs/{nnnn}-x.tasks.json"), "w") as f:
             json.dump(data, f)
 
-    def stop(self, cwd=None):
+    def stop(self, cwd=None, background_tasks=()):
         """Hinweis an Claude (= weiterarbeiten) oder None (= darf stoppen)."""
         r = run_script("open-tasks.py", {"hook_event_name": "Stop", "stop_hook_active": False,
-                                         "cwd": cwd or self.repo}, self.env)
+                                         "cwd": cwd or self.repo, "background_tasks": list(background_tasks)}, self.env)
         self.assertEqual(r.returncode, 0, r.stderr)
         return json.loads(r.stdout)["hookSpecificOutput"]["additionalContext"] if r.stdout.strip() else None
 
@@ -461,6 +461,18 @@ class OpenTasksTest(unittest.TestCase):
     def test_open_closing_blocks_stop(self):
         self.write_spec([("T01", "done", [])], closing="todo")
         self.assertIn("Abschluss", self.stop())
+
+    def test_background_subagent_allows_stop(self):
+        """Dessen Ende weckt die Session; ein Hinweis jetzt erzwänge nur Leerlauf-Runden."""
+        self.write_spec([("T01", "done", [])], closing="todo")
+        walker = {"id": "a1", "type": "subagent", "status": "running", "agent_type": "stefan:ui-walker"}
+        self.assertIsNone(self.stop(background_tasks=[walker]))
+
+    def test_background_shell_still_blocks_stop(self):
+        """Ein Server im Hintergrund endet nie von selbst und weckt die Session nicht."""
+        self.write_spec([("T01", "done", [])], closing="todo")
+        server = {"id": "b1", "type": "shell", "status": "running", "command": "npm start"}
+        self.assertIn("Abschluss", self.stop(background_tasks=[server]))
 
     def test_finished_allows_stop(self):
         self.write_spec([("T01", "done", [])], closing="done")
