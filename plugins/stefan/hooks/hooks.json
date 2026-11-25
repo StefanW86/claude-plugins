@@ -1,9 +1,9 @@
 {
-  "description": "Schutzregeln: Prozesse nicht nach Namen beenden, Prod-Checkouts nur per Deploy, nie direkt auf main, kein Co-Authored-By; vor Commit terraform fmt, keine State-/Plan-/tfvars-Dateien, PowerShell-Encoding; Rückfrage bei terraform apply/destroy und terraform test mit echter Infrastruktur",
+  "description": "Schutzregeln: Prozesse nicht nach Namen beenden, nie direkt auf main, kein Co-Authored-By; vor Commit für neue und geänderte Dateien terraform fmt, keine State-/Plan-Dateien, Rückfrage bei neuen tfvars, PowerShell-Encoding; Rückfrage bei terraform apply/destroy/refresh/init -migrate-state und terraform test mit echter Infrastruktur",
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Bash|PowerShell|Edit|Write|MultiEdit|NotebookEdit",
+        "matcher": "Bash|PowerShell",
         "hooks": [
           {
             "type": "command",

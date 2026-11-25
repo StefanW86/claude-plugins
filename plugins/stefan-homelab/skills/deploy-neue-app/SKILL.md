@@ -5,7 +5,7 @@ description: Konventionen für Entwicklung und Deployment neuer Apps auf dem Hom
 
 # Deployment neuer Apps
 - Entwicklung in `~/dev/<App>`, Repo privat unter `StefanW86/<app>`.
-- Prod-Checkout `/home/stefan/<app>`. Dort nie direkt ändern, er wird nur vom Deploy aktualisiert. Ein Plugin-Hook sperrt Git-Repos direkt unter `~` (außer `*-work`); `.env` bleibt bearbeitbar.
+- Prod-Checkout `/home/stefan/<app>`. Dort nie direkt ändern, er wird nur vom Deploy aktualisiert. Der Schutz-Hook dieses Plugins sperrt Git-Repos direkt unter `~` (außer `*-work`); `.env` bleibt bearbeitbar.
 - Ablauf: Merge nach `main` → CI im App-Repo → `repository_dispatch` an `swdhomelab/deploy` (der Org-Runner bedient keine persönlichen Repos) → Deploy läuft auf diesem Host.
 - Neue App eintragen: Eintrag `deploy_<app>` in `swdhomelab/deploy` anlegen. Änderungen dort per `gh api` (contents PUT), nicht über den lokalen Clone.
 - Laufende Deploys beobachten: `gh run list -R swdhomelab/deploy`. Nur notfalls manuell auslösen: `gh workflow run deploy.yml -R swdhomelab/deploy -f repo=StefanW86/<app> -f sha=<sha>`.

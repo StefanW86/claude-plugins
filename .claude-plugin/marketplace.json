@@ -1,7 +1,9 @@
 {
   "name": "stefan-local",
   "owner": { "name": "Stefan" },
+  "description": "Stefans Plugins für Claude Code: Entwicklungsablauf und Homelab",
   "plugins": [
-    { "name": "stefan", "source": "./plugins/stefan", "description": "Stefans persönliche Skills" }
+    { "name": "stefan", "source": "./plugins/stefan", "description": "Entwicklungsablauf mit Interview, Spec, TDD und Reviews; Schutz-Hook und Session-Statistik" },
+    { "name": "stefan-homelab", "source": "./plugins/stefan-homelab", "description": "Homelab: Schutz der Prod-Checkouts und Konventionen für neue Apps (nur auf dem Homelab installieren)" }
   ]
 }

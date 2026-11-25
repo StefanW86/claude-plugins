@@ -1,0 +1,9 @@
+{
+  "name": "stefan-homelab",
+  "description": "Homelab: Schutz-Hook für Prod-Checkouts (nur der Deploy ändert sie) und Konventionen für neue Apps (Docker Compose, cloudflared, Deploy-Repo). Nur auf dem Homelab (Linux) installieren.",
+  "version": "1.0.0",
+  "license": "MIT",
+  "author": {
+    "name": "Stefan Wendrich"
+  }
+}

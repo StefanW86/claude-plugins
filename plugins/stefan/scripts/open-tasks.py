@@ -5,13 +5,17 @@ NNNN-<slug>: letzter Pfadteil ist <slug> oder beginnt mit NNNN- (feat/0003-x, fe
 blocked heißt: wartet auf den Nutzer, ebenso alles, was davon abhängt. Der Hinweis kommt als
 additionalContext: Claude arbeitet weiter, ohne dass die Oberfläche einen Hook-Fehler meldet.
 Läuft ein Subagent im Hintergrund, kein Hinweis: Sein Ende weckt die Session ohnehin.
+Arbeitet Claude schon wegen dieses Hooks weiter (stop_hook_active) und hat sich seit dem letzten Hinweis nichts
+getan (Aufgabenliste, Commit, Arbeitsbaum), darf es stoppen: Schutz vor Endlosschleifen.
 """
 import glob
+import hashlib
 import json
 import os
 import re
 import subprocess
 import sys
+import tempfile
 
 
 def git(cwd, *args):
@@ -67,6 +71,32 @@ def problem(root, path):
     return None
 
 
+def stalled(data, root, path):
+    """True, wenn Claude schon wegen dieses Hooks weiterarbeitet und sich seit dem letzten Hinweis nichts getan hat.
+    Merkt sich sonst den aktuellen Stand für den nächsten Aufruf."""
+    try:
+        with open(path, "rb") as f:
+            state = f.read()
+    except OSError:
+        state = b""
+    state += (git(root, "rev-parse", "HEAD") + "\n" + git(root, "status", "--porcelain")).encode("utf-8")
+    current = hashlib.sha256(state).hexdigest()
+    session = re.sub(r"[^\w-]", "", str(data.get("session_id") or "")) or "ohne-session"
+    marker = os.path.join(tempfile.gettempdir(), f"stefan-open-tasks-{session}")
+    try:
+        with open(marker, encoding="utf-8") as f:
+            if data.get("stop_hook_active") and f.read() == current:
+                return True
+    except OSError:  # erster Hinweis dieser Session
+        pass
+    try:
+        with open(marker, "w", encoding="utf-8") as f:
+            f.write(current)
+    except OSError:
+        pass
+    return False
+
+
 def main():
     try:
         data = json.loads(sys.stdin.buffer.read().decode("utf-8"))
@@ -81,7 +111,8 @@ def main():
     for path in paths:
         msg = problem(root, path)
         if msg:
-            print(json.dumps({"hookSpecificOutput": {"hookEventName": "Stop", "additionalContext": msg}}))
+            if not stalled(data, root, path):
+                print(json.dumps({"hookSpecificOutput": {"hookEventName": "Stop", "additionalContext": msg}}))
             return 0
     return 0
 

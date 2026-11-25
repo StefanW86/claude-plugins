@@ -1,0 +1,23 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  hooks:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.x"
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false # echtes Binary statt Node-Wrapper, wie auf den Arbeitsrechnern
+      - run: python -m unittest discover -v tests

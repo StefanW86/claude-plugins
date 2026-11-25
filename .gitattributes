@@ -1,0 +1,2 @@
+# sh bricht bei CRLF ab (Windows mit core.autocrlf=true)
+*.sh text eol=lf
