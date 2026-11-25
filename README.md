@@ -1,13 +1,70 @@
 # claude-plugins
 
-Marketplace `stefan-local` mit dem Plugin `stefan` (Skills, Agents, Schutz-Hook).
+Marketplace `stefan-local` mit zwei Plugins:
+
+| Plugin | Inhalt | Installieren auf |
+|---|---|---|
+| `stefan` | Entwicklungsablauf (Skills, Agents), Schutz-Hook, Session-Statistik | allen Rechnern |
+| `stefan-homelab` | Schutz der Prod-Checkouts, Konventionen für neue Apps | nur dem Homelab (Linux) |
+
+Ab Version 2.0.0 von `stefan` liegen Prod-Schutz und `deploy-neue-app` in `stefan-homelab`: auf dem Homelab zusätzlich installieren.
+
+## Ablauf (Plugin stefan)
+
+`/stefan:go` führt durch alle Phasen und setzt nach Unterbrechungen an der richtigen Stelle fort:
+
+1. **Plan** – `grill-with-docs`: Interview mit einer Frage pro Runde, Ergebnis `docs/plans/NNNN-<slug>.md`.
+2. **Design** (nur bei neuer UI) – `ui-design`: Mockup im Design-Canvas des Projekts.
+3. **Spec** – `plan-to-spec`: Anforderungen, Aufgaben mit Testfällen, Größe klein oder groß, Ergebnis in `docs/specs/`.
+4. **Umsetzung** – `implement`: TDD je Aufgabe, im Modus groß mit Subagenten (`task-implementer`, `task-reviewer`). Abschluss mit Diät (`simplify`), Code- und Security-Review, `ui-walker` (bei UI), `closing-checker`, Bericht und Integration.
+
+Außerdem:
+- `/stefan:go-quick`: kurz klären, dann direkt umsetzen nach `clean-code`, ohne TDD.
+- `implement` im Modus Direkt: Bugfixes und kleine Änderungen ohne Spec.
+- `/stefan:audit`: Qualitätsbericht nach `docs/audit/`, ändert keinen Code.
+- `clean-code`: Regeln für Code und Tests, dazu Terraform und PowerShell.
+- `/stefan:session-stats`: Kosten, Tokens und Zeiten der Session (Mod).
+
+### Angaben in der Projekt-CLAUDE.md
+
+- `Integration: <basis>, merge|mr`: Basis-Branch und Weg nach der Abnahme. `merge` heißt lokal mergen und pushen, `mr` heißt Branch pushen und Merge Request bzw. Pull Request anlegen. Fehlt die Zeile, fragt `implement` einmal und trägt sie ein.
+- Befehle, E2E-Weg und bei UI Vorschau-Weg und Test-Geräte; das legt `plan-to-spec` an. Projekte ohne UI (Terraform, PowerShell) testen E2E auf oberster Ebene, z. B. mit `terraform test` oder Pester.
+- Optional ein Branch-Schema, sonst `feature/…` bzw. `fix/…`.
+
+## Schutz-Hook (Plugin stefan)
+
+Prüft Bash- und PowerShell-Aufrufe vor der Ausführung:
+
+| Regel | Folge |
+|---|---|
+| Prozesse nach Namen beenden (`pkill`, `killall`, `kill $(pgrep …)`, `Stop-Process -Name`, `taskkill /IM`) | abgelehnt |
+| Commit direkt auf `main`/`master` (außer erstem Commit, Merge-Abschluss und Branchwechsel im selben Befehl) | abgelehnt |
+| Commit mit `Co-Authored-By`, auch aus einer Nachrichtendatei (`-F`) | abgelehnt |
+| Commit mit neuen State-, Plan- oder `.terraform/`-Dateien | abgelehnt |
+| Commit mit geänderten Terraform-Dateien, die `terraform fmt -check` nicht bestehen | abgelehnt |
+| Commit mit geänderten PowerShell-Skripten mit Nicht-ASCII ohne BOM (außer nur für PowerShell 7) | abgelehnt |
+| Commit mit neuen `*.tfvars` | Rückfrage |
+| `terraform apply`, `destroy`, `import`, `refresh`, `state rm/mv`, `init -migrate-state`; `terraform test` mit echter Infrastruktur | Rückfrage |
+
+Die Commit-Prüfungen gelten nur für neue und geänderte Dateien. Was unverändert im Repo liegt, etwa die Lock-Datei, tfvars oder Altskripte in Team-Repos, hat das Projekt entschieden.
+
+Unter Windows merkt sich der Hook den Pfad zu Python, ein Aufruf dauert dann rund 0,3 s. Fehlt Python, laufen die Tools mit einer Warnung ohne Prüfung weiter.
+
+## Plugin stefan-homelab
+
+- **Schutz-Hook:** Git-Repos direkt unter `$HOME` (außer `*-work` und Punktordnern) sind Prod-Checkouts, die nur der Deploy ändert. Edit und Write dort werden abgelehnt (außer `.env`), ebenso Git-Änderungen; andere Schreibbefehle brauchen eine Rückfrage.
+- **Skill `deploy-neue-app`:** Konventionen für neue Apps (Docker Compose, cloudflared, `swdhomelab/deploy`).
 
 ## Voraussetzungen
 
 - Claude Code ab v2.1.275
-- Python 3 (der Schutz-Hook läuft in Python)
-- Windows zusätzlich: Git for Windows (für `sh`) und Python 3, z. B.
-  `winget install Git.Git Python.Python.3.13`
+- Python 3 für die Hooks
+- Windows zusätzlich Git for Windows (für `sh`), z. B. `winget install Git.Git Python.Python.3.13`
+- Für `ui-design` das Plugin `frontend-design` aus dem offiziellen Marketplace:
+  ```text
+  /plugin marketplace add anthropics/claude-plugins-official
+  /plugin install frontend-design@claude-plugins-official
+  ```
 
 ## Terminal (Claude Code CLI)
 
@@ -18,6 +75,7 @@ In der Shell:
 ```sh
 claude plugin marketplace add StefanW86/claude-plugins
 claude plugin install stefan@stefan-local
+claude plugin install stefan-homelab@stefan-local   # nur auf dem Homelab
 ```
 
 Oder in einer laufenden Session:
@@ -25,15 +83,17 @@ Oder in einer laufenden Session:
 ```text
 /plugin marketplace add StefanW86/claude-plugins
 /plugin install stefan@stefan-local
+/plugin install stefan-homelab@stefan-local
 ```
 
-Danach Session neu starten oder `/reload-plugins` ausführen.
+Die letzte Zeile nur auf dem Homelab. Danach Session neu starten oder `/reload-plugins` ausführen.
 
 ### Aktualisieren
 
 ```sh
 claude plugin marketplace update stefan-local
 claude plugin update stefan@stefan-local
+claude plugin update stefan-homelab@stefan-local   # nur auf dem Homelab
 ```
 
 Danach Session neu starten oder `/reload-plugins`.
@@ -73,3 +133,13 @@ Alternativ im Eingabefeld einer Code-Session: `/plugin` → Tab **Marketplaces**
 **Update marketplace** (aktualisiert auch das installierte Plugin).
 
 Danach neue Session starten oder `/reload-plugins`.
+
+## Tests
+
+```sh
+python -m unittest discover tests
+```
+
+Die Tests mit `terraform fmt` laufen nur, wenn `terraform` im PATH liegt; sonst werden sie übersprungen.
+GitHub Actions führt alle Tests unter Ubuntu und Windows aus. `shellparse.py` liegt in beiden Plugins
+in identischer Kopie, ein Test prüft das.
