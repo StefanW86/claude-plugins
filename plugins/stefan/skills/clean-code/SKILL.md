@@ -26,6 +26,7 @@ Commit-Messages ohne Co-Authored-By-Zeile (der Schutz-Hook lehnt sie ab).
 - Verhalten an öffentlichen Schnittstellen (Seams) prüfen, nicht Interna.
 - Erwartete Werte aus unabhängiger Quelle (Testfall, festes Beispiel), nie so berechnet wie im Code.
 - Mocks nur an Systemgrenzen (externe APIs, Zeit, Zufall).
+- Ohne UI ist E2E der Test auf oberster Ebene, z. B. `terraform test` oder Pester-Integrationstests (siehe Referenzen); Test-Geräte gibt es dann nicht.
 
 ## Code
 - Allgemeingültig lösen, keine Sonderfälle nur für Testdaten.

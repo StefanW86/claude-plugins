@@ -10,7 +10,7 @@
 - **Status:** Ready · **Datum:** YYYY-MM-DD
 - **Quelle:** <[Plan NNNN](../plans/NNNN-<slug>.md) | Interview vom YYYY-MM-DD> · **Fortschritt:** [tasks.json](NNNN-<slug>.tasks.json)
 - **Größe:** <klein|groß> (<Treffer>) → <eine Session | Orchestrator + Subagenten>
-- **Umsetzung:** Skill `stefan:implement` (TDD, Reviews, Abschluss), Branch nach Projektschema, sonst `feat/NNNN-<slug>` (letzter Namensteil `NNNN-<slug>` oder `<slug>`)
+- **Umsetzung:** Skill `stefan:implement` (TDD, Reviews, Abschluss), Branch nach Projektschema, sonst `feature/NNNN-<slug>` (letzter Namensteil `NNNN-<slug>` oder `<slug>`)
 - **Vorab vom Nutzer:** <nur was Claude nicht selbst kann, mit Ort, z. B. Secret `DEPLOY_DISPATCH_TOKEN` im App-Repo, `TUNNEL_TOKEN` in Prod-`.env` | keine>
 
 ## 1. Umfang
@@ -19,7 +19,8 @@
 
 ## 2. Stack, Plattformen, Struktur
 - <Framework + Versionen, DB/ORM, Test-Tools, UI-Lib>
-- **Plattformen:** <z. B. Desktop-Web, PWA iPad/iPhone, Android/iOS nativ> · **Test-Geräte:** <je Plattform ein Gerät bzw. Profil im E2E-Werkzeug, mobil mit Touch und passender Engine, z. B. Desktop 1440×900, iPhone-Profil mit WebKit, Windows 1920×1080; Desktop-App (z. B. .NET WPF/WinForms/WinUI) per UI-Automation-Werkzeug wie FlaUI oder Appium; hat die App Hell/Dunkel, beide Themes>
+- Ohne UI: **Zielsysteme:** <z. B. Windows Server 2022 mit PowerShell 5.1, Azure Automation, Terraform ≥ 1.7 gegen Azure>
+- Mit UI: **Plattformen:** <z. B. Desktop-Web, PWA iPad/iPhone, Android/iOS nativ> · **Test-Geräte:** <je Plattform ein Gerät bzw. Profil im E2E-Werkzeug, mobil mit Touch und passender Engine, z. B. Desktop 1440×900, iPhone-Profil mit WebKit, Windows 1920×1080; Desktop-App (z. B. .NET WPF/WinForms/WinUI) per UI-Automation-Werkzeug wie FlaUI oder Appium; hat die App Hell/Dunkel, beide Themes>
 - **Projektstruktur** (legt T01 an): <Ordnerbaum mit Zweck je Ordner, Ort der Tests, Namenskonventionen>
 
 | Zweck | Befehl |
@@ -53,7 +54,7 @@
 
 ## 8. Tests
 **Seams:** <öffentliche Schnittstellen, an denen getestet wird – möglichst hoch, möglichst wenige>.
-Ebenen: Unit <…> · Integration <…> · E2E <… gegen lokale Instanz, auf allen Test-Viewports/Geräten>. Testdaten: <Isolation>.
+Ebenen: Unit <…> · Integration <…> · E2E <mit UI: gegen lokale Instanz auf allen Test-Geräten; ohne UI: Test auf oberster Ebene, z. B. `terraform test`, Pester>. Testdaten: <Isolation>.
 
 ## 9. Aufgaben
 <klein: Aufgaben im Format der Aufgabendatei (unten), ohne „Kontext“.>

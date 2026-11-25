@@ -19,4 +19,4 @@ Direkt umsetzen: keine Spec, kein Design, kein `stefan:implement`, keine Reviews
 - Zu Beginn Skill `stefan:clean-code` laden und befolgen, außer den Abschnitten „TDD“ und „Prüfstufen“.
 - Tests nur, wenn der Nutzer sie verlangt oder vorhandene Tests durch die Änderung brechen.
 - Einmal am Ende das Nötigste prüfen: vorhandene Tests der geänderten Bereiche per Dateifilter, dazu Lint bzw. Typecheck, falls vorhanden. E2E nur, wenn sonst nichts die Änderung abdeckt, dann nur diese Datei auf einem Gerät. Keine Gesamtsuite, kein frischer Clone, keine Vorschau, außer auf Wunsch. Im Bericht sagen, was geprüft ist und was nicht.
-- Git wie immer: Branch von main, nach Abnahme Merge und Push.
+- Git: Branch nach dem Schema aus `CLAUDE.md` (sonst `feature/<slug>` bzw. `fix/<slug>`) vom Basis-Branch aus der Zeile `Integration: <basis>, merge|mr` der Projekt-`CLAUDE.md` (fehlt sie: `main`, `merge`). Nach Abnahme bei `merge` mergen und pushen, bei `mr` den Branch pushen und einen Merge Request bzw. Pull Request anlegen.
