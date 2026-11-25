@@ -3,7 +3,7 @@ name: audit
 description: >
   Quality audit of a whole repo: bugs, security holes, what breaks under real
   load, risky code without tests, slow paths, and what to delete, merge or
-  split. Ranked, each finding explained in plain English. Writes the report to
+  split. Ranked, each finding explained in plain language. Writes the report to
   docs/audit/, changes no code. Only on explicit /stefan:audit.
 disable-model-invocation: true
 ---
@@ -72,8 +72,10 @@ exists). It is the work list for later fixes, so each finding must stand on
 its own: file and lines, problem, fix. Do not commit it. Give the same full
 report in the chat, then the path of the file.
 
-Very simple English: short sentences, everyday words. Explain a technical
-term the first time you use it. The reader may never have seen this code.
+Write in the user's language (from CLAUDE.md, otherwise the language of the
+request) and translate the fixed labels below. Very simple wording: short
+sentences, everyday words. Explain a technical term the first time you use
+it. The reader may never have seen this code.
 
 Start with `What this repo does:` in two or three sentences, and the load
 you assumed.

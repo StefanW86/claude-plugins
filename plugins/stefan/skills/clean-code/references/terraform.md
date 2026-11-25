@@ -9,10 +9,10 @@ Ergänzt `SKILL.md` für Terraform (`*.tf`); ersetzt dort „je Modul bzw. Klass
 - `for_each` statt `count`, sobald Instanzen sich unterscheiden (stabile Adressen); `count` nur für an/aus.
 
 ## Versionen und Git
-- Terraform, Provider und Registry-Module mit `~> X.Y`: neueste Version innerhalb der Major-Version, X.Y = kleinste benötigte (z. B. `~> 1.7`, weil `mock_provider` erst ab 1.7 geht: 1.7 bis unter 2.0). `.terraform.lock.hcl` kommt nicht ins Repo: ein frischer Clone holt die neueste passende Version, lokal `terraform init -upgrade`.
-- `.gitignore`: `.terraform/`, `.terraform.lock.hcl`, `*.tfstate*`, `*.tfplan`, `*.tfvars`, `*.tfvars.json`. Der Schutz-Hook lehnt Commits mit diesen Dateien ab.
+- Terraform, Provider und Registry-Module mit `~> X.Y`: neueste Version innerhalb der Major-Version, X.Y = kleinste benötigte (z. B. `~> 1.7`, weil `mock_provider` erst ab 1.7 geht: 1.7 bis unter 2.0). `.terraform.lock.hcl` gehört ins Repo (Empfehlung von HashiCorp: überall dieselben Provider-Versionen mit geprüften Prüfsummen). Provider aktualisieren mit `terraform init -upgrade` und die Lock-Datei mitcommitten; arbeiten Rechner mit anderen Betriebssystemen am Repo (z. B. CI unter Linux), `terraform providers lock -platform=linux_amd64 -platform=windows_amd64`.
+- `.gitignore`: `.terraform/`, `*.tfstate*`, `*.tfplan`, `*.tfvars`, `*.tfvars.json`. Der Schutz-Hook lehnt neue State-, Plan- und `.terraform/`-Dateien ab und fragt bei neuen `*.tfvars` nach; was ein Team-Repo schon versioniert, bleibt dessen Entscheidung.
 - Plan immer mit `-out=<name>.tfplan`. Ins Repo nur `*.tfvars.example` mit Platzhaltern.
-- Vor jedem Commit `terraform fmt -recursive` im Repo-Wurzelverzeichnis; der Schutz-Hook lehnt sonst ab.
+- Vor jedem Commit die geänderten Dateien mit `terraform fmt <datei>` formatieren (der Schutz-Hook prüft neue und geänderte Terraform-Dateien); `-recursive` nur in eigenen Repos, sonst formatiert es fremde Altdateien mit.
 
 ## TDD
 - Red/Green mit `terraform test` (`tests/*.tftest.hcl`). Jeder `run`-Block mit `command = plan` oder gegen `mock_provider`: Standard ist `apply` und legt echte Infrastruktur an (der Schutz-Hook fragt dann nach).
@@ -21,6 +21,6 @@ Ergänzt `SKILL.md` für Terraform (`*.tf`); ersetzt dort „je Modul bzw. Klass
 
 ## Plan, Apply, Abschluss
 - Vor jedem Apply `terraform plan`. Jedes `destroy`/`replace` im Plan muss gewollt sein, sonst ist es ein Befund (bei Daten Critical). Kritische Ressourcen mit `lifecycle { prevent_destroy = true }`.
-- `apply`, `destroy`, `import`, `state rm/mv` nur mit Freigabe des Nutzers, nie gegen Prod im Rahmen von Tests (der Schutz-Hook fragt nach).
+- `apply`, `destroy`, `import`, `refresh`, `state rm/mv`, `init -migrate-state` nur mit Freigabe des Nutzers, nie gegen Prod im Rahmen von Tests (der Schutz-Hook fragt nach).
 - Frischer Clone: `terraform init -backend=false`, dann `validate` und `terraform test`.
 - Security-Review: zusätzlich `trivy config .` oder `checkov -d .`, falls installiert.

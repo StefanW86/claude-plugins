@@ -12,7 +12,7 @@ Reihenfolge: Plan (`grill-with-docs`) → **Design** → Spec (`plan-to-spec`). 
 2. **Canvas finden.** Pro Projekt genau **ein** Canvas mit dem Projektnamen als Titel; nie einen zweiten anlegen. Suchen: `Design:`-Link in `docs/plans/` und `docs/specs/`, sonst Artifact-Liste nach Titel. Nur wenn keiner existiert: neu anlegen (Artifact-Tool `quickstart` mit `intent: design`, Typ „Design“). Immer den Anweisungen des Design-Typs folgen; vor jeder Änderung den aktuellen Stand lesen, denn der Nutzer kann von Hand geändert haben.
 3. **Grundlage sammeln.** Plan aus `docs/plans/` oder Beschreibung des Nutzers; fehlt UI-relevantes Verhalten → per `AskUserQuestion` klären, eine Frage pro Aufruf. Bestehende App ohne Canvas: vorhandenes Aussehen (Theme, Farben, Schriften, Komponenten) per `Explore`-Subagent erfassen.
 4. **Aussehen festlegen** – nur wenn es noch keins gibt (neue App, leerer Canvas, kein Design-System gewählt):
-   - Skill `frontend-design:frontend-design` laden und seinen Design-Plan erstellen (Farben, Schrift, Layout, Prinzipien), gegen generische Standardlösungen prüfen.
+   - Skill `frontend-design:frontend-design` laden und seinen Design-Plan erstellen (Farben, Schrift, Layout, Prinzipien), gegen generische Standardlösungen prüfen. Fehlt das Plugin `frontend-design`: dem Nutzer einmal die Installation laut README nennen und ohne den Skill nach denselben Punkten planen.
    - Plan dem Nutzer kurz vorlegen und freigeben lassen, erst dann bauen. Mindestens eine Option ist eine neue Richtung; das Aussehen anderer Projekte des Nutzers ist nur eine Option unter mehreren.
    - Gibt es schon ein Aussehen: übernehmen, den Skill nicht laden. Einheitlichkeit geht vor Neuheit.
 5. **Bauen** im Canvas:

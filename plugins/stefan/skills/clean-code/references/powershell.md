@@ -31,7 +31,7 @@ Ergänzt `SKILL.md` für Skripte, Module und Runbooks (`*.ps1`, `*.psm1`, `*.psd
 
 ## Module und Azure
 - Modulversionen: neueste innerhalb der Major-Version (`-Version '[X.Y,<X+1>.0)'`, im Kopf `ModuleVersion = 'X.Y'`).
-- Auf Zielsystemen installiert die Bereitstellung die Module (`Install-PSResource -Scope AllUsers -TrustRepository -Quiet`), nie jemand von Hand. Lokal fehlende Module (Abhängigkeiten, PSScriptAnalyzer, Pester) ohne Rückfrage installieren: `Install-PSResource -Scope CurrentUser -TrustRepository -Quiet`, Pester mit `-Version '[5.0,6.0)'`; für 5.1 in `powershell.exe` (eigener Modulpfad) `Install-Module -Scope CurrentUser -Force`, Pester zusätzlich `-MaximumVersion 5.99 -SkipPublisherCheck`.
+- Auf Zielsystemen installiert die Bereitstellung die Module (`Install-PSResource -Scope AllUsers -TrustRepository -Quiet`), nie jemand von Hand. Lokal fehlende Prüfmodule (PSScriptAnalyzer, Pester) ohne Rückfrage aus der PowerShell Gallery installieren: `Install-PSResource -Scope CurrentUser -Repository PSGallery -TrustRepository -Quiet`, Pester mit `-Version '[5.0,6.0)'`; für 5.1 in `powershell.exe` (eigener Modulpfad) `Install-Module -Scope CurrentUser -Repository PSGallery -Force`, Pester zusätzlich `-MaximumVersion 5.99 -SkipPublisherCheck`. Andere fehlende Module (Abhängigkeiten des Projekts) nur nach Rückfrage mit Name, Version und Quelle.
 - Azure-Aufrufe bei vorübergehenden Fehlern wiederholen (Helper `Invoke-WithRetry`).
 - Runbooks: Managed Identity, beginnen mit `Disable-AzContextAutosave`; Funktionen mit `ConfirmImpact = 'High'` mit `-Confirm:$false` aufrufen (die Sandbox kann nicht nachfragen); die 3-Stunden-Grenze von Azure Automation beachten und Folge-Jobs starten.
 
