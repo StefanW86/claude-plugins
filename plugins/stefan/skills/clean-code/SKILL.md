@@ -30,8 +30,8 @@ Commit-Messages ohne Co-Authored-By-Zeile (der Schutz-Hook lehnt sie ab).
 ## Code
 - Allgemeingültig lösen, keine Sonderfälle nur für Testdaten.
 - Einfachste Lösung, die das Verlangte erfüllt; mehr nur mit Beleg (Test, Messung). Keine „für später“-Parameter, Flags, Abstraktionen oder Konfigurierbarkeit.
-- Keine Performance-Maßnahme (Memo, Deferred, Cache, Debounce) ohne Messung, die das Problem zeigt – auch nicht als Vorgabe in Spec oder Aufgabe.
-- Keinen Zustand anlegen (State, Ref, Cache, Puffer), der sich ableiten oder neu holen lässt.
+- Keine Performance-Maßnahme (Memo, Deferred, Cache, Debounce) ohne Messung, die das Problem zeigt – auch nicht als Vorgabe in Spec oder Aufgabe. Fachlich begründetes Drosseln (z. B. API-Limit, Suche beim Tippen) zählt nicht als Performance-Maßnahme.
+- Keinen Zustand anlegen (State, Ref, Puffer), der sich aus vorhandenem Zustand oder Eingaben ableiten lässt.
 - Vor dem Neubauen vorhandene Komponenten und Hilfsfunktionen suchen und wiederverwenden.
 - Dieselbe Fachregel (Bedeutung einer Einstellung, Auswahl betroffener Datensätze, Validierung) steht nur an einer Stelle, schon ab dem zweiten Vorkommen. Bloß ähnliche Struktur erst ab drei Vorkommen extrahieren; nur zufällig Gleiches nicht zusammenlegen. Identischen Code, auch Test-Helfer, importieren statt kopieren.
 - Ein bestehendes Muster übernehmen heißt, es wie neuen Code zu prüfen: Mängel darin mit beheben oder melden, nicht mitkopieren.
