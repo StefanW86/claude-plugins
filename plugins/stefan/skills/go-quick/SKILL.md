@@ -1,6 +1,6 @@
 ---
 name: go-quick
-description: Schneller Weg ohne Prozess – kurz Verständnis klären, dann direkt umsetzen wie ohne Plugin, nur nach KISS, DRY und YAGNI. Verwenden bei /go-quick.
+description: Schneller Weg ohne Prozess – kurz Verständnis klären, dann direkt umsetzen nach den Regeln aus clean-code, ohne TDD und mit minimaler Prüfung. Verwenden bei /go-quick.
 disable-model-invocation: true
 ---
 
@@ -15,11 +15,8 @@ Fragen, bis Ziel, Verhalten und Grenzen der Aufgabe klar sind, nach den Regeln a
 - Zum Schluss Entscheidungen in wenigen Zeilen zusammenfassen, ohne Rückfrage direkt loslegen.
 
 ## 2. Umsetzen
-Direkt umsetzen, wie Claude es ohne dieses Plugin täte.
-- Keine Spec, kein Design, kein `stefan:implement`, keine Reviews oder Subagenten.
-- `stefan:clean-code` nicht laden: TDD, Testregeln, Prüfstufen und UI-Regeln gelten hier nicht. Tests nur, wenn der Nutzer sie verlangt oder vorhandene Tests durch die Änderung brechen.
-- Es gelten nur:
-  - **KISS:** die einfachste Lösung, die funktioniert.
-  - **DRY:** Vorhandenes suchen und wiederverwenden; dieselbe Regel nur an einer Stelle.
-  - **YAGNI:** nur das Verlangte, nichts „für später“.
+Direkt umsetzen: keine Spec, kein Design, kein `stefan:implement`, keine Reviews oder Subagenten.
+- Zu Beginn Skill `stefan:clean-code` laden und befolgen, außer den Abschnitten „TDD“ und „Prüfstufen“.
+- Tests nur, wenn der Nutzer sie verlangt oder vorhandene Tests durch die Änderung brechen.
+- Einmal am Ende das Nötigste prüfen: vorhandene Tests der geänderten Bereiche per Dateifilter, dazu Lint bzw. Typecheck, falls vorhanden. E2E nur, wenn sonst nichts die Änderung abdeckt, dann nur diese Datei auf einem Gerät. Keine Gesamtsuite, kein frischer Clone, keine Vorschau, außer auf Wunsch. Im Bericht sagen, was geprüft ist und was nicht.
 - Git wie immer: Branch von main, nach Abnahme Merge und Push.
