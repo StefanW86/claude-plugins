@@ -22,6 +22,7 @@ Außerdem:
 - `/stefan:go-quick`: kurz klären, dann direkt umsetzen nach `clean-code`, ohne TDD.
 - `implement` im Modus Direkt: Bugfixes und kleine Änderungen ohne Spec.
 - `/stefan:audit`: Qualitätsbericht nach `docs/audit/`, ändert keinen Code.
+- `/stefan:ux-review <Ablauf>`: UX-Review eines Ablaufs aus Sicht eines Erstnutzers (Web/PWA, Windows-Desktop), Bericht nach `docs/ux-review/`, ändert keinen Code.
 - `clean-code`: Regeln für Code und Tests, dazu Terraform und PowerShell.
 - `/stefan:session-stats`: Kosten, Tokens und Zeiten der Session (Mod).
 
