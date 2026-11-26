@@ -50,11 +50,15 @@ Ein unbestätigter Befund (Timing, nur im Testbrowser gesehen) bekommt höchsten
 Schreibe den Bericht nach `docs/ux-review/<YYYY-MM-DD>-<ablauf>.md` und lege die zitierten Screenshots daneben in `docs/ux-review/<YYYY-MM-DD>-<ablauf>/`. Nichts committen. Gib den Bericht vollständig im Chat aus. Er enthält:
 1. **Aufgaben, Kontext, Geräte bzw. Fenster und Skalierung:** je eine Zeile, dazu geänderte Testdaten.
 2. **Erlebter Ablauf:** nummerierte Schritte, je Schritt „erwartet → passiert“.
-3. **Befunde**, durchnummeriert über alle Prioritäten. Je Befund:
-   - **Titel** (Priorität · Linse · Gerät bzw. Fenster)
-   - **Beobachtung:** was passiert, in welchem Schritt, Screenshot
-   - **Folge:** was es für den Nutzer bedeutet
-   - **Vorschlag:** die kleinste Änderung, die das Problem löst
+3. **Befunde** als Tabelle, sortiert nach Priorität (Critical zuerst) und durchnummeriert:
+
+   | # | Priorität | Befund | Vorschlag | Heuristik / Linse |
+   |---|---|---|---|---|
+   | 1 | **Critical** | **Einräumen speichert trotz fehlender Pflichtangabe.** Absenden geht ohne Hinweis durch; Feta landet als „1 Packung“ ohne Inhalt im Vorrat, Rezepte können ihn nicht anrechnen. Schritt 4, iPhone, `01-einraeumen.png` | Absenden sperren und das fehlende Feld markieren | #5 Fehlervermeidung, #9 Fehler erkennen |
+
+   - **Befund:** fetter Titel als Satz, dann was passiert und was es für den Nutzer bedeutet; am Ende Schritt, Gerät bzw. Fenster und Screenshot-Datei. Höchstens 3 Sätze.
+   - **Vorschlag:** die kleinste Änderung, die das Problem löst.
+   - **Heuristik / Linse:** Nummer und Name, bei WCAG das Kriterium mit Messwert; „unbestätigt“ ebenfalls hier.
 4. **Was gut ist** (höchstens 3 Punkte) und **Nicht geprüft / offen**.
 
 Nenne zum Schluss den nächsten Schritt: `/stefan:implement docs/ux-review/<datei> <Nummern>`. Bei einer deutlich geänderten Bedienung ist das stattdessen `ui-design`.
