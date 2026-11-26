@@ -41,13 +41,12 @@ Prüft Bash- und PowerShell-Aufrufe vor der Ausführung:
 | Prozesse nach Namen beenden (`pkill`, `killall`, `kill $(pgrep …)`, `Stop-Process -Name`, `taskkill /IM`) | abgelehnt |
 | Commit direkt auf `main`/`master` (außer erstem Commit, Merge-Abschluss und Branchwechsel im selben Befehl) | abgelehnt |
 | Commit mit `Co-Authored-By`, auch aus einer Nachrichtendatei (`-F`) | abgelehnt |
-| Commit mit neuen State-, Plan- oder `.terraform/`-Dateien | abgelehnt |
+| Commit mit neuen State-, Plan-, Lock- (`.terraform.lock.hcl`) oder `.terraform/`-Dateien | abgelehnt |
 | Commit mit geänderten Terraform-Dateien, die `terraform fmt -check` nicht bestehen | abgelehnt |
 | Commit mit geänderten PowerShell-Skripten mit Nicht-ASCII ohne BOM (außer nur für PowerShell 7) | abgelehnt |
-| Commit mit neuen `*.tfvars` | Rückfrage |
 | `terraform apply`, `destroy`, `import`, `refresh`, `state rm/mv`, `init -migrate-state`; `terraform test` mit echter Infrastruktur | Rückfrage |
 
-Die Commit-Prüfungen gelten nur für neue und geänderte Dateien. Was unverändert im Repo liegt, etwa die Lock-Datei, tfvars oder Altskripte in Team-Repos, hat das Projekt entschieden.
+Die Commit-Prüfungen gelten nur für neue und geänderte Dateien. Was unverändert im Repo liegt, etwa eine Lock-Datei oder Altskripte in Team-Repos, hat das Projekt entschieden.
 
 Unter Windows merkt sich der Hook den Pfad zu Python, ein Aufruf dauert dann rund 0,3 s. Fehlt Python, laufen die Tools mit einer Warnung ohne Prüfung weiter.
 

@@ -1,7 +1,7 @@
 {
   "name": "stefan",
   "description": "Entwicklungsablauf von der Idee bis zum Merge (Interview, Design, Spec, TDD mit Subagenten, Reviews), Regeln für Code, Terraform und PowerShell, Schutz-Hook für Git, Terraform und Prozesse, Session-Statistik",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "license": "MIT",
   "author": {
     "name": "Stefan Wendrich"

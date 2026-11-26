@@ -7,7 +7,7 @@
   selben Befehl zählt.
 - Commit mit Co-Authored-By-Trailer verboten (Vorgabe des Nutzers), auch aus einer Nachrichtendatei (-F).
 - Commit-Prüfungen nur für neue und geänderte Dateien; was unverändert in HEAD liegt, hat das Projekt entschieden:
-  - Terraform: neue State-, Plan- und .terraform/-Dateien verboten, neue *.tfvars: Rückfrage (oft Secrets);
+  - Terraform: neue State-, Plan-, Lock- und .terraform/-Dateien verboten (gehören in .gitignore), *.tfvars erlaubt;
     geänderte Terraform-Dateien müssen `terraform fmt -check` bestehen.
   - PowerShell: Skripte (.ps1/.psm1/.psd1) mit Nicht-ASCII ohne BOM verboten, außer per `#Requires -Version 6+`
     bzw. `-PSEdition Core` auf PowerShell 7 beschränkt (5.1 liest sie sonst als ANSI).
@@ -41,7 +41,6 @@ TF_CHANGE = {"apply", "destroy", "import", "refresh", "taint", "untaint", "force
 TF_STATE_READ = {"list", "show", "pull", "identities"}
 TF_STATE_MIGRATE = {"migrate-state", "force-copy"}
 TF_FILES = (".tf", ".tftest.hcl")
-TF_VARS = (".tfvars", ".tfvars.json")
 TF_TEST_SUFFIXES = (".tftest.hcl", ".tftest.json")
 TF_TEST_MAX = 1 << 20  # größere Testdateien gelten als nicht prüfbar
 # Zeichenketten (Klammern darin zählen nicht) und Kommentare in HCL
@@ -239,9 +238,10 @@ def commit_candidates(top):
 
 
 def is_tf_artifact(path):
-    """State, Plan oder Inhalt von .terraform/ (Pfad relativ zum Repo, mit /)."""
+    """State, Plan, Lock-Datei oder Inhalt von .terraform/ (Pfad relativ zum Repo, mit /)."""
     *dirs, name = path.split("/")
-    return ".terraform" in dirs or name.endswith((".tfstate", ".tfplan")) or ".tfstate." in name
+    return (".terraform" in dirs or name.endswith((".tfstate", ".tfplan")) or ".tfstate." in name
+            or name == ".terraform.lock.hcl")
 
 
 def terraform_fmt_problem(d, top, files):
@@ -271,22 +271,14 @@ def terraform_fmt_problem(d, top, files):
 
 
 def terraform_commit_problem(d, top, new, changed):
-    """(Entscheidung, Grund), wenn der Commit Terraform-Artefakte, neue Variablendateien oder unformatiertes
-    Terraform enthielte, sonst None."""
+    """(Entscheidung, Grund), wenn der Commit Terraform-Artefakte oder unformatiertes Terraform enthielte, sonst
+    None."""
     artifacts = sorted(f for f in new if is_tf_artifact(f))
     if artifacts:
-        return "deny", (f"State, Plan und .terraform/ gehören nicht ins Repo: {', '.join(artifacts[:5])}. Mit "
+        return "deny", (f"State, Plan, Lock-Datei und .terraform/ gehören nicht ins Repo: {', '.join(artifacts[:5])}. Mit "
                         "`git rm --cached` aus dem Index nehmen und in .gitignore eintragen.")
-    fmt = terraform_fmt_problem(d, top, sorted(f for f in changed
-                                               if f.endswith(TF_FILES) and os.path.isfile(os.path.join(top, f))))
-    if fmt and fmt[0] == "deny":
-        return fmt
-    tfvars = sorted(f for f in new if f.endswith(TF_VARS))
-    if tfvars:
-        return "ask", (f"Neue Variablendateien {', '.join(tfvars[:5])}: *.tfvars enthalten oft Secrets. Nur "
-                       "committen, wenn das Projekt sie versioniert und keine Secrets darin stehen; sonst in "
-                       ".gitignore eintragen und Beispielwerte als *.tfvars.example.")
-    return fmt
+    return terraform_fmt_problem(d, top, sorted(f for f in changed
+                                                if f.endswith(TF_FILES) and os.path.isfile(os.path.join(top, f))))
 
 
 def powershell_commit_problem(top, changed):

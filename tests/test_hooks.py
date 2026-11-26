@@ -361,29 +361,23 @@ class TerraformGuardTest(unittest.TestCase):
         self.assertIsNone(self.bash("git commit -am x", cwd=self.infra))
 
     def test_commit_with_terraform_state_or_plan_denied(self):
-        for f in ("terraform.tfstate", "env/terraform.tfstate.backup", ".terraform/providers/p", "prod.tfplan"):
+        for f in ("terraform.tfstate", "env/terraform.tfstate.backup", ".terraform/providers/p", "prod.tfplan",
+                  ".terraform.lock.hcl", "infra/.terraform.lock.hcl"):
             self.write(f, "x")
             git(self.infra, "add", "-f", f)
             self.assertEqual(self.bash("git commit -m x", cwd=self.infra), "deny", f)
             git(self.infra, "rm", "-q", "-r", "--cached", f)
 
-    def test_lock_file_may_be_committed(self):
-        """HashiCorp empfiehlt, die Lock-Datei zu versionieren (Provider-Versionen und Prüfsummen)."""
-        self.write(".terraform.lock.hcl", "x")
-        self.write("infra/.terraform.lock.hcl", "x")
+    def test_new_tfvars_allowed(self):
+        self.write("prod.tfvars", "x")
+        self.write("env/dev.auto.tfvars.json", "x")
         self.assertIsNone(self.bash("git add -A && git commit -m x", cwd=self.infra))
 
-    def test_new_tfvars_asks(self):
-        for f in ("prod.tfvars", "env/secrets.auto.tfvars.json"):
-            self.write(f, "x")
-            self.assertEqual(self.bash("git add -A && git commit -m x", cwd=self.infra), "ask", f)
-            os.remove(os.path.join(self.infra, f))
-
-    def test_commit_with_ignored_state_and_tfvars_example_allowed(self):
-        self.write(".gitignore", "*.tfstate\n*.tfvars\n")
+    def test_commit_with_ignored_state_plan_and_lock_allowed(self):
+        self.write(".gitignore", "*.tfstate\n*.tfplan\n.terraform.lock.hcl\n")
         self.write("terraform.tfstate", "x")
-        self.write("prod.tfvars", "x")
-        self.write("prod.tfvars.example", "x")
+        self.write("prod.tfplan", "x")
+        self.write(".terraform.lock.hcl", "x")
         self.assertIsNone(self.bash("git add -A && git commit -m x", cwd=self.infra))
 
     def test_unchanged_tracked_files_not_checked(self):
