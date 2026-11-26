@@ -1,6 +1,7 @@
 ---
 name: ux-review
-description: UX- und Usability-Review eines Ablaufs in der laufenden App aus Sicht eines Erstnutzers – Web/PWA oder Windows-Desktop (WPF, WinUI, WinForms u. a.). Die App wird per E2E-Werkzeug bedient, Befunde werden mit Screenshots belegt, nach Nielsen-Heuristiken, WCAG 2.2 AA und Plattform-Richtlinien bewertet und priorisiert. Schreibt den Bericht nach docs/ux-review/, ändert keinen Code. Verwenden, wenn UX, Usability oder Verständlichkeit einer Ansicht oder eines Ablaufs geprüft werden soll; nicht für den Abgleich mit dem Design (das macht ui-walker in implement).
+description: UX- und Usability-Review eines Ablaufs in der laufenden App aus Sicht eines Erstnutzers – Web/PWA oder Windows-Desktop (WPF, WinUI, WinForms u. a.). Die App wird per E2E-Werkzeug bedient, Befunde werden mit Screenshots belegt, nach Nielsen-Heuristiken, WCAG 2.2 AA und Plattform-Richtlinien bewertet und priorisiert. Schreibt den Bericht nach docs/ux-review/, ändert keinen Code. Nur auf ausdrücklichen Aufruf /stefan:ux-review; nicht für den Abgleich mit dem Design (das macht ui-walker in implement).
+disable-model-invocation: true
 argument-hint: <Ablauf, z. B. "Einkauf: abhaken und einräumen">
 ---
 
