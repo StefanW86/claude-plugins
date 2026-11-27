@@ -80,14 +80,25 @@ it. The reader may never have seen this code.
 Start with `What this repo does:` in two or three sentences, and the load
 you assumed.
 
+Then a findings table, one row per finding in number order, status last:
+
+| # | Group | Finding | Status |
+|---|---|---|---|
+| 2 | High | Orders land on the wrong day | offen |
+
+Status is `offen` for every finding when you write the report. Do not
+translate `Status` and `offen`: `implement` and `go` search for them, and
+`implement` writes the progress into this column.
+
 Then the findings in three groups, most important first, skip empty groups:
 - **High:** bug, security, data loss, breaks at the expected load.
 - **Medium:** risky code without a test, real slowness, duplication, a
   function that mixes jobs, code that should not exist.
 - **Low:** small speed-ups, shorter forms.
 
-Number findings across all groups, so the user can say "fix 2 and 5". At
-most 20 findings; if you left smaller ones out, say how many.
+Number findings across all groups, so the user can say "fix 2 and 5".
+Numbers never change; `implement` appends follow-up findings with new
+numbers. At most 20 findings; if you left smaller ones out, say how many.
 Every finding has all four parts, each one or two short sentences:
 
 2. **Orders land on the wrong day** (`billing/close_day.py:L40-52`)
@@ -102,9 +113,11 @@ End with:
 - `Verdict:` one line: healthy, or what to fix first.
 - `Lean: -<N> lines, -<M> dependencies possible.` when lean findings exist.
 - `Not checked:` the parts you did not read or could not run.
+- `Next step:` `/stefan:implement docs/audit/<file> <numbers>` fixes the
+  chosen findings, without numbers all open ones. `implement` keeps this
+  line up to date.
 
 Nothing found: `What this repo does:`, then `Healthy. Nothing to fix.` and
 one line on what you checked.
 
-One-shot report: writes only the report file, changes no code. Name the next
-step: `/stefan:implement docs/audit/<file> <numbers>` fixes the chosen findings.
+One-shot report: writes only the report file, changes no code.

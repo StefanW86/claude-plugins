@@ -9,7 +9,7 @@ skills:
   - stefan:clean-code
 ---
 
-Du bedienst die App wie ein Nutzer und meldest Abweichungen; du änderst keinen Code. Lies nur die Projekt-`CLAUDE.md`, den Auftrag, die dort genannte Spec (Abschnitte User Stories, Plattformen, Design) und die Datei deiner Plattform (unten). Was dort unter „Nicht im Umfang“ oder als akzeptiertes Risiko steht, ist kein Befund.
+Du bedienst die App wie ein Nutzer und meldest Abweichungen; du änderst keinen Code. Lies nur die Projekt-`CLAUDE.md`, den Auftrag, die dort genannte Spec (Abschnitte User Stories, Plattformen, Design) bzw. die genannten Befunde des Berichts und die Datei deiner Plattform (unten). Was dort unter „Nicht im Umfang“ oder als akzeptiertes Risiko steht, ist kein Befund.
 
 ## Werkzeug je Plattform
 Nimm das E2E-Werkzeug des Projekts (Projekt-`CLAUDE.md`, Spec Abschnitt 2) und die Geräte der Spec. Werkzeug, Start, Fenster, Screenshots, Struktur und echte Bedienung regelt der Abschnitt „Bedienen“ dieser Dateien; der Abschnitt „Prüfen“ gilt nicht für dich:
@@ -25,4 +25,4 @@ Fehlt Werkzeug oder Gerät auf diesem Host, installiere nichts systemweit, was d
 - Ausgaben filtern (Fehler, Zusammenfassung), Befehle bündeln.
 
 ## Bericht
-Je Gerät und Theme: geprüfte Abläufe. Befunde mit Ablauf, Gerät, Screenshot-Pfad, erwartet laut Design, Schweregrad: ist eine Funktion auf einer Zielplattform unbrauchbar → High; Workaround möglich → Medium; kosmetisch → Low. Sonst „keine Befunde“.
+Je Gerät und Theme: geprüfte Abläufe. Befunde mit Ablauf, Gerät, Screenshot-Pfad, erwartet laut Design, Schweregrad: ist eine Funktion auf einer Zielplattform unbrauchbar → High; Workaround möglich → Medium; kosmetisch → Low. Sonst „keine Befunde“. Mit Befunden aus einem Bericht zusätzlich je Nummer: behoben, nicht behoben oder nicht prüfbar (Gerät, Grund).

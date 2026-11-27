@@ -10,8 +10,8 @@ Verkettet die Phasen-Skills. Jede Phase lädt ihren Skill per Skill-Tool und fol
 
 ## Einstieg bestimmen (bei jedem Aufruf)
 - **Mit Idee als Argument:** neue Arbeit bei Phase 1. Läuft schon eine unfertige Arbeit, kurz fragen: fortsetzen oder neu beginnen.
-- **Mit Befunden aus einem Bericht** (z. B. `docs/audit/…`, Nummern): direkt `stefan:implement` im Modus Direkt, ohne Phase 1.
-- **Ohne Argument:** die neueste unfertige Arbeit in `docs/plans/` und `docs/specs/` suchen (gleiche Nummer = gleiche Arbeit) und einsteigen:
+- **Mit Befunden aus einem Bericht** (`docs/ux-review/…` oder `docs/audit/…`, Nummern optional): direkt `stefan:implement` im Modus Direkt, ohne Phase 1.
+- **Ohne Argument:** die neueste unfertige Arbeit in `docs/plans/` und `docs/specs/` suchen (gleiche Nummer = gleiche Arbeit), dazu Berichte in `docs/ux-review/` und `docs/audit/` mit Befunden im Status `offen`, und einsteigen. Offene Berichte neben einer unfertigen Spec in der Statuszeile nennen.
 
 | Zustand | Phase |
 |---|---|
@@ -19,7 +19,8 @@ Verkettet die Phasen-Skills. Jede Phase lädt ihren Skill per Skill-Tool und fol
 | Plan, Design nötig (Kriterien in `stefan:ui-design`), keine Design-Seite | 2 Design |
 | Plan ohne Spec | 3 Spec |
 | Spec `Ready` oder `In Progress` | 4 Umsetzung |
-| alle Specs `Done` | nichts offen → nach neuer Idee fragen |
+| sonst nur Berichte mit Status `offen` | `/stefan:implement <bericht>` per `AskUserQuestion` vorschlagen (neuester zuerst) → 4 im Modus Direkt |
+| alle Specs `Done`, kein Bericht offen | nichts offen → nach neuer Idee fragen |
 
 ## Phasen und Freigabepunkte
 1. **Plan:** `stefan:grill-with-docs`. Freigabe: Bestätigung am Ende des Interviews. Bugfix oder kleine Änderung (ein Bereich, wenige Dateien) → direkt `stefan:implement` im Modus Direkt, ohne Spec. Mittleres Feature → Phase 1 und 2 überspringen, Phase 3 ohne Plan (kurzes Interview).
