@@ -46,7 +46,7 @@ Prüft Bash- und PowerShell-Aufrufe vor der Ausführung:
 | Commit mit geänderten PowerShell-Skripten mit Nicht-ASCII ohne BOM (außer nur für PowerShell 7) | abgelehnt |
 | `terraform apply`, `destroy`, `import`, `refresh`, `state rm/mv`, `init -migrate-state`; `terraform test` mit echter Infrastruktur | Rückfrage |
 
-Die Commit-Prüfungen gelten nur für neue und geänderte Dateien. Was unverändert im Repo liegt, etwa eine Lock-Datei oder Altskripte in Team-Repos, hat das Projekt entschieden.
+Die Commit-Prüfungen gelten nur für neue und geänderte Dateien, die der Commit enthält (Index, `git add` davor im selben Befehl, `commit -a`, Pfade beim Commit); nicht gestagte Änderungen und ungetrackte Dateien bleiben außen vor. Was unverändert im Repo liegt, etwa eine Lock-Datei oder Altskripte in Team-Repos, hat das Projekt entschieden.
 
 Unter Windows merkt sich der Hook den Pfad zu Python, ein Aufruf dauert dann rund 0,3 s. Fehlt Python, laufen die Tools mit einer Warnung ohne Prüfung weiter.
 

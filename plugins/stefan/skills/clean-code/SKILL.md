@@ -19,6 +19,7 @@ Commit-Messages ohne Co-Authored-By-Zeile (der Schutz-Hook lehnt sie ab).
 - Keine Testläufe neben einer noch laufenden Suite: die Last verfälscht Laufzeiten und Timeouts. Hintergrundläufe erst abwarten.
 
 ## Prüfstufen
+- Lint, Formatierung, statische und Security-Analyse ohne ausdrücklichen Wunsch nur für neue und geänderte Dateien (bzw. deren Module), nie fremde Altdateien; Tests und Typecheck laufen wie unten beschrieben.
 - Während der Arbeit nur betroffene Tests, E2E dabei auf einem Test-Gerät (z. B. `--project`); gesamte Suite, Lint, Typecheck und E2E auf allen Geräten einmal am Ende, in einem Aufruf (Prüfskript des Projekts, sonst mit `&&` verkettet). Schlägt etwas fehl: nur die fehlgeschlagenen Tests bis grün (`--last-failed` bzw. Dateifilter), dann die Suite ein letztes Mal.
 - E2E-Server (Weg aus Projekt-`CLAUDE.md`): neu bauen und neu starten nur, wenn sich Produktivcode seit dem letzten Build geändert hat, nicht nach reinen Teständerungen; mehrere Korrekturen sammeln, dann einmal bauen. Einen selbst gestarteten Server am Ende per PID beenden. `--repeat-each` nur bei konkretem Verdacht auf instabile Tests. Frischer Clone nur im Abschluss.
 

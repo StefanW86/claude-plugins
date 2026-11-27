@@ -401,16 +401,31 @@ class TerraformGuardTest(unittest.TestCase):
     def test_terraform_binary_inside_repo_not_run(self):
         self.write("main.tf", FORMATTED)
         self.terraform_in(".")
-        self.assertEqual(self.bash("git commit -m x", cwd=self.infra), "ask")
+        self.assertEqual(self.bash("git add main.tf && git commit -m x", cwd=self.infra), "ask")
 
     @needs_terraform
     def test_terraform_from_path_below_working_dir_runs(self):
         self.write("main.tf", UNFORMATTED)
         self.terraform_in("tools")
-        self.assertEqual(self.bash("git commit -m x", cwd=self.infra), "deny")
+        self.assertEqual(self.bash("git add main.tf && git commit -m x", cwd=self.infra), "deny")
 
     def test_commit_with_terraform_but_no_binary_asks(self):
         self.write("main.tf", FORMATTED)
+        self.assertEqual(self.bash("git add . && git commit -m x", cwd=self.infra), "ask")
+
+    def test_files_outside_commit_not_checked(self):
+        """Nur was der Commit enthält: nicht gestagte Änderungen und ungetrackte Dateien bleiben außen vor."""
+        self.write("legacy.tf", FORMATTED)
+        self.commit_all()
+        self.write("legacy.tf", FORMATTED + "# x\n")
+        self.write("new.tf", FORMATTED)
+        self.write("README.md", "x")
+        self.assertIsNone(self.bash("git add README.md && git commit -m x", cwd=self.infra))
+        self.assertIsNone(self.bash("git commit -m x README.md", cwd=self.infra))
+        self.assertEqual(self.bash("git commit -am x", cwd=self.infra), "ask")
+        self.assertEqual(self.bash("git commit -m x -- legacy.tf", cwd=self.infra), "ask")
+        self.assertEqual(self.bash("git add new.tf && git commit -m x", cwd=self.infra), "ask")
+        git(self.infra, "add", "new.tf")
         self.assertEqual(self.bash("git commit -m x", cwd=self.infra), "ask")
 
     def test_commit_without_terraform_files_needs_no_binary(self):
@@ -476,6 +491,12 @@ class PowerShellGuardTest(unittest.TestCase):
         git(self.repo, "commit", "-q", "-m", "bestand")
         self.write("legacy/Old.ps1", "Write-Output 'Größe'\nWrite-Output 'Breite'\n")
         self.assertEqual(self.commit(), "deny")
+
+    def test_script_outside_commit_not_checked(self):
+        self.write("bad.ps1", "Write-Output 'Größe'\n")
+        self.write("ok.ps1", "Write-Output 'ok'\n")
+        self.assertIsNone(self.bash("git add ok.ps1 && git commit -m x", cwd=self.repo))
+        self.assertEqual(self.bash("git add -A; git commit -m x", cwd=self.repo), "deny")
 
     def test_powershell_tool_commit_checked(self):
         self.write("run.ps1", "Write-Output 'Größe'\n")

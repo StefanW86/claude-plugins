@@ -37,7 +37,7 @@ Ergänzt `SKILL.md` für Skripte, Module und Runbooks (`*.ps1`, `*.psm1`, `*.psd
 
 ## TDD und Prüfung
 - Red/Green mit Pester 5 (`tests/*.Tests.ps1`, `Invoke-Pester -Output Detailed`). `Mock` für Az-Cmdlets und Zeit; Dateien und Registry über `TestDrive:` bzw. `TestRegistry:` (nur Windows); nie gegen echte Ressourcen.
-- Prüfstufe am Ende statt Lint/Typecheck: `Invoke-ScriptAnalyzer -Path . -Recurse` ohne Befunde, Pester.
+- Prüfstufe am Ende statt Lint/Typecheck: `Invoke-ScriptAnalyzer -Path <datei>` für jede neue und geänderte Datei ohne Befunde, Pester.
 - Was diese Regeln erlauben, der Analyzer aber meldet (z. B. `Write-Host` zur Anzeige, Nicht-ASCII ohne BOM bei `#Requires -Version 7.2`): `[Diagnostics.CodeAnalysis.SuppressMessageAttribute('<Regel>', '', Justification = '<Grund>')]` bzw. projektweit in `PSScriptAnalyzerSettings.psd1`.
 - Neue Dateien mit `Invoke-Formatter -Settings CodeFormattingOTBS` formatieren, bestehende im vorhandenen Stil lassen.
 - Skripte für 5.1 mit `powershell.exe` prüfen, nicht mit `pwsh`. Ohne Windows-Host sagen, dass 5.1 ungeprüft ist.

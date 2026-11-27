@@ -6,7 +6,8 @@
 - Commit auf main/master verboten (außer erstem Commit und Merge-/Squash-Abschluss); ein Branchwechsel vorher im
   selben Befehl zählt.
 - Commit mit Co-Authored-By-Trailer verboten (Vorgabe des Nutzers), auch aus einer Nachrichtendatei (-F).
-- Commit-Prüfungen nur für neue und geänderte Dateien; was unverändert in HEAD liegt, hat das Projekt entschieden:
+- Commit-Prüfungen nur für neue und geänderte Dateien, die der Commit enthält (Index, `git add` davor im selben
+  Befehl, `commit -a`, Pfade); was unverändert in HEAD liegt, hat das Projekt entschieden:
   - Terraform: neue State-, Plan-, Lock- und .terraform/-Dateien verboten (gehören in .gitignore), *.tfvars erlaubt;
     geänderte Terraform-Dateien müssen `terraform fmt -check` bestehen.
   - PowerShell: Skripte (.ps1/.psm1/.psd1) mit Nicht-ASCII ohne BOM verboten, außer per `#Requires -Version 6+`
@@ -47,6 +48,10 @@ TF_TEST_MAX = 1 << 20  # größere Testdateien gelten als nicht prüfbar
 TF_TEST_NOISE = re.compile(r'"(?:\\.|[^"\\\n])*"|/\*.*?\*/|(?:#|//)[^\n]*', re.S)
 TF_TOKENS = re.compile(r'(?P<run>\brun(?:\s*""|\s+[A-Za-z_][\w-]*)\s*\{)|(?P<plan>\bcommand\s*=\s*plan\b)'
                        r'|(?P<open>\{)|(?P<close>\})')
+COMMIT_SHORT_VALUE = "mFCctS"  # Rest bzw. nächstes Argument ist der Wert
+COMMIT_LONG_VALUE = {"--message", "--file", "--reuse-message", "--reedit-message", "--template", "--author", "--date",
+                     "--cleanup", "--fixup", "--squash", "--trailer"}
+ADD_INTERACTIVE = {"--patch", "--interactive", "--edit"}
 PS_SUFFIXES = (".ps1", ".psm1", ".psd1")
 PS_BOMS = (b"\xef\xbb\xbf", b"\xff\xfe", b"\xfe\xff")
 PS_CORE_ONLY = re.compile(rb"^[ \t]*#requires\b[^\n]*?-(?:version[ \t]+([0-9]+)|psedition[ \t]+core)", re.I | re.M)
@@ -214,27 +219,75 @@ def terraform_test_problem(seg, cwd):
     return None
 
 
-def commit_candidates(top):
-    """(neu, geändert): Dateien, die der Commit neu bzw. geändert enthalten kann – Index, Arbeitsbaum, ungetrackt
-    und nicht ignoriert (so zählt auch ein `git add -A` im selben Befehl); gelöschte zählen nicht. Was unverändert
-    in HEAD liegt, hat das Projekt entschieden und wird nicht geprüft. Ohne HEAD (erster Commit) ist alles neu."""
-    def names(*args):
-        out = subprocess.run(["git", "-C", top, *args], capture_output=True).stdout
-        return [f for f in os.fsdecode(out).split("\0") if f]
+def git_names(d, *args):
+    out = subprocess.run(["git", "-C", d, "-c", "core.quotepath=off", *args], capture_output=True).stdout
+    return [f for f in os.fsdecode(out).split("\0") if f]
 
-    new = set(names("ls-files", "-z", "--others", "--exclude-standard"))
-    if git_out(top, "rev-parse", "-q", "--verify", "HEAD") is None:
-        new.update(names("ls-files", "-z", "--cached"))
-        return new, set(new)
-    changed = set(new)
-    for staged in (["--cached"], []):
-        fields = names("diff", "-z", "--name-status", "--no-renames", *staged, "HEAD")
-        for status, path in zip(fields[::2], fields[1::2]):
-            if status != "D":
-                changed.add(path)
-            if status == "A":
-                new.add(path)
-    return new, changed
+
+def commit_options(args):
+    """(alle, Pfadangaben) von git commit: -a/--all bzw. Pfade, die der Commit aus dem Arbeitsbaum nimmt."""
+    every, paths, i = False, [], 0
+    while i < len(args):
+        a = args[i]
+        if a == "--":
+            paths += args[i + 1:]
+            break
+        if a in ("--all", "--include", "--pathspec-from-file") or a.startswith("--pathspec-from-file="):
+            every = True
+        elif a.startswith("--"):
+            i += a in COMMIT_LONG_VALUE
+        elif a.startswith("-") and len(a) > 1:
+            for j, c in enumerate(a[1:]):
+                if c in "ai":
+                    every = True
+                if c in COMMIT_SHORT_VALUE:
+                    i += j == len(a) - 2
+                    break
+        else:
+            paths.append(a)
+        i += 1
+    return every, paths
+
+
+def worktree_changes(top):
+    """Getrackte, nicht gelöschte Dateien, die im Arbeitsbaum von HEAD abweichen."""
+    fields = git_names(top, "diff", "-z", "--name-status", "--no-renames", "HEAD")
+    return {p for st, p in zip(fields[::2], fields[1::2]) if st != "D"}
+
+
+def added_paths(d, args):
+    """Pfade (relativ zum Repo), die `git add <args>` stagen würde; interaktiv: None."""
+    if any(a in ADD_INTERACTIVE or re.match(r"^-[a-zA-Z]*[pie]", a) for a in args):
+        return None
+    out = subprocess.run(["git", "-C", d, "-c", "core.quotepath=off", "add", "--dry-run", *args],
+                         capture_output=True).stdout
+    return {line[5:-1] for line in os.fsdecode(out).splitlines() if line.startswith("add '") and line.endswith("'")}
+
+
+def commit_candidates(top, d, args, adds):
+    """(neu, geändert): Dateien, die der Commit neu bzw. geändert enthält – Index, `git add` davor im selben Befehl
+    (adds: Liste von (Verzeichnis, Argumente)), `commit -a` bzw. Pfade beim Commit; gelöschte zählen nicht. Was
+    unverändert in HEAD liegt oder nicht in den Commit geht, wird nicht geprüft. Ohne HEAD ist alles neu."""
+    has_head = git_out(top, "rev-parse", "-q", "--verify", "HEAD") is not None
+    fields = git_names(top, "diff", "-z", "--cached", "--name-status", "--no-renames", "HEAD") if has_head else []
+    changed = {p for st, p in zip(fields[::2], fields[1::2]) if st != "D"}
+    new = {p for st, p in zip(fields[::2], fields[1::2]) if st == "A"}
+    if not has_head:
+        changed = new = set(git_names(top, "ls-files", "-z", "--cached"))
+    extra = set()
+    for ad, aargs in adds:
+        paths = added_paths(ad, aargs)
+        extra |= (worktree_changes(top) | set(git_names(top, "ls-files", "-z", "--others", "--exclude-standard"))
+                  if paths is None else paths)
+    every, paths = commit_options(args)
+    if every:
+        extra |= worktree_changes(top)
+    elif paths:
+        extra |= worktree_changes(top) & set(git_names(d, "ls-files", "-z", "--full-name", "--", *paths))
+    extra = {p for p in extra if os.path.isfile(os.path.join(top, p))}
+    in_head = set(git_names(top, "ls-tree", "-r", "-z", "--name-only", "HEAD", "--", *extra)) if has_head and extra \
+        else set()
+    return new | {p for p in extra if p not in in_head}, changed | extra
 
 
 def is_tf_artifact(path):
@@ -323,7 +376,7 @@ def read_text(path):
         return ""
 
 
-def commit_problem(command, d, args, switched):
+def commit_problem(command, d, args, switched, adds):
     """(Entscheidung, Grund) für git commit im Verzeichnis d, sonst None."""
     if any(CO_AUTHOR.search(t) for t in [command] + [read_text(resolve(f, d)) for f in message_files(args)]):
         return "deny", ("Ohne Co-Authored-By committen (Vorgabe des Nutzers): denselben Commit ohne diese Zeile "
@@ -334,13 +387,14 @@ def commit_problem(command, d, args, switched):
     top = git_out(d, "rev-parse", "--show-toplevel")
     if not top:
         return None
-    new, changed = commit_candidates(top)
+    new, changed = commit_candidates(top, d, args, [(ad, a) for ad, a in adds if git_out(ad, "rev-parse",
+                                                                                         "--show-toplevel") == top])
     ps = powershell_commit_problem(top, changed)
     return ("deny", ps) if ps else terraform_commit_problem(d, top, new, changed)
 
 
 def check_shell(command, cwd, powershell=False):
-    ask, switched, prev, lookup, kill = None, {}, None, False, False
+    ask, switched, prev, lookup, kill, adds = None, {}, None, False, False, []
     for name, seg, sep, d in commands(command, cwd, powershell):
         piped_from, prev = (prev if sep in ("|", "|&") else None), seg
         if kills_by_name(name, seg[1:], powershell, piped_from):
@@ -352,8 +406,10 @@ def check_shell(command, cwd, powershell=False):
             gd, sub, args = call
             if sub in ("checkout", "switch") and switch_target(sub, args):
                 switched[gd] = switch_target(sub, args)
+            if sub == "add":
+                adds.append((gd, args))
             if sub == "commit":
-                problem = commit_problem(command, gd, args, switched)
+                problem = commit_problem(command, gd, args, switched, adds)
                 if problem and problem[0] == "deny":
                     decide(*problem)
                 ask = ask or (problem and problem[1])

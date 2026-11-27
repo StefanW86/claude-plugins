@@ -17,11 +17,11 @@ Ergänzt `SKILL.md` für Terraform (`*.tf`); ersetzt dort „je Modul bzw. Klass
 
 ## TDD
 - Red/Green mit `terraform test` (`tests/*.tftest.hcl`). Jeder `run`-Block mit `command = plan` oder gegen `mock_provider`: Standard ist `apply` und legt echte Infrastruktur an (der Schutz-Hook fragt dann nach).
-- Prüfstufe am Ende statt Lint/Typecheck: `validate`, `tflint` (falls vorhanden), `terraform test`.
+- Prüfstufe am Ende statt Lint/Typecheck: `validate`, `tflint` (falls vorhanden) in den geänderten Modulen, `terraform test`.
 - Refactor: Ressourcen oder Module nur mit `moved {}`-Block umbenennen bzw. verschieben, sonst Destroy und Neuanlage.
 
 ## Plan, Apply, Abschluss
 - Vor jedem Apply `terraform plan`. Jedes `destroy`/`replace` im Plan muss gewollt sein, sonst ist es ein Befund (bei Daten Critical). Kritische Ressourcen mit `lifecycle { prevent_destroy = true }`.
 - `apply`, `destroy`, `import`, `refresh`, `state rm/mv`, `init -migrate-state` nur mit Freigabe des Nutzers, nie gegen Prod im Rahmen von Tests (der Schutz-Hook fragt nach).
 - Frischer Clone: `terraform init -backend=false`, dann `validate` und `terraform test`.
-- Security-Review: zusätzlich `trivy config .` oder `checkov -d .`, falls installiert.
+- Security-Review: zusätzlich `trivy config <ordner>` bzw. `checkov -f <datei>` für die geänderten Module bzw. Dateien, falls installiert.
