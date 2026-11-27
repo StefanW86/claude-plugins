@@ -9,8 +9,8 @@ Ergänzt `SKILL.md` für Terraform (`*.tf`); ersetzt dort „je Modul bzw. Klass
 - `for_each` statt `count`, sobald Instanzen sich unterscheiden (stabile Adressen); `count` nur für an/aus.
 
 ## Versionen und Git
-- Terraform, Provider und Registry-Module mit `~> X.Y`: neueste Version innerhalb der Major-Version, X.Y = kleinste benötigte (z. B. `~> 1.7`, weil `mock_provider` erst ab 1.7 geht: 1.7 bis unter 2.0). `.terraform.lock.hcl` wird nicht versioniert; Provider lokal aktualisieren mit `terraform init -upgrade`.
-- `.gitignore`: `.terraform/`, `*.tfstate*`, `*.tfplan`, `.terraform.lock.hcl`. Der Schutz-Hook lehnt neue State-, Plan-, Lock- und `.terraform/`-Dateien ab; was ein Team-Repo schon versioniert, bleibt dessen Entscheidung.
+- Terraform, Provider und Registry-Module mit `~> X.Y`: neueste Version innerhalb der Major-Version, X.Y = kleinste benötigte (z. B. `~> 1.7`, weil `mock_provider` erst ab 1.7 geht: 1.7 bis unter 2.0). `.terraform.lock.hcl` gehört ins Repo. Provider aktualisieren mit `terraform init -upgrade` und die Lock-Datei mitcommitten; arbeiten Rechner mit anderen Betriebssystemen am Repo (z. B. CI unter Linux), `terraform providers lock -platform=linux_amd64 -platform=windows_amd64`.
+- `.gitignore`: `.terraform/`, `*.tfstate*`, `*.tfplan`. Der Schutz-Hook lehnt neue State-, Plan- und `.terraform/`-Dateien ab; was ein Team-Repo schon versioniert, bleibt dessen Entscheidung.
 - `*.tfvars` gehören ins Repo, aber ohne Secrets (die kommen aus Key Vault o. Ä. bzw. per `TF_VAR_*`).
 - Plan immer mit `-out=<name>.tfplan`.
 - Vor jedem Commit die geänderten Dateien mit `terraform fmt <datei>` formatieren (der Schutz-Hook prüft neue und geänderte Terraform-Dateien); `-recursive` nur in eigenen Repos, sonst formatiert es fremde Altdateien mit.
